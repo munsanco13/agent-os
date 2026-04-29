@@ -72,8 +72,13 @@ print(node if isinstance(node, str) else '')
 if [[ ! -f bootstrap.yaml ]] || ! grep -qE '^stack:' bootstrap.yaml 2>/dev/null; then
   yellow "→ No bootstrap.yaml or no stack section — auto-detecting…"
   template_dir=""
-  if   [[ -f .agent-template/scripts/detect-stack.sh ]]; then template_dir=".agent-template"
-  elif [[ -d /tmp/agent-os-template/.agent-template ]];  then template_dir="/tmp/agent-os-template/.agent-template"
+  # Legacy: when run from inside the agent-os source repo (or its old
+  # mundox-studio embedded form), the scripts are at the local root
+  # or under .agent-template/.
+  if   [[ -f scripts/detect-stack.sh ]];               then template_dir="."
+  elif [[ -f .agent-template/scripts/detect-stack.sh ]]; then template_dir=".agent-template"
+  elif [[ -d /tmp/agent-os-template ]];                 then template_dir="/tmp/agent-os-template"
+  elif [[ -d /tmp/agent-os-template/.agent-template ]]; then template_dir="/tmp/agent-os-template/.agent-template"
   fi
   if [[ -n "$template_dir" ]]; then
     detected=$(bash "$template_dir/scripts/detect-stack.sh")
@@ -162,15 +167,20 @@ echo
 
 # --- 2. Run base installer (drops files) -----------------------------
 template_dir=""
-if [[ -f .agent-template/scripts/install.sh ]]; then
+if [[ -f scripts/install.sh && -f AGENTS.md ]]; then
+  # Running from inside the agent-os source repo itself
+  template_dir="."
+elif [[ -f .agent-template/scripts/install.sh ]]; then
   template_dir=".agent-template"
+elif [[ -d /tmp/agent-os-template/scripts ]]; then
+  template_dir="/tmp/agent-os-template"
 elif [[ -d /tmp/agent-os-template/.agent-template ]]; then
   template_dir="/tmp/agent-os-template/.agent-template"
 else
   blue "→ Cloning template into /tmp/agent-os-template"
-  git clone --depth 1 --branch v2.1.0 \
+  git clone --depth 1 --branch v2.3.0 \
     https://github.com/munsanco13/agent-os /tmp/agent-os-template 2>&1 | tail -3
-  template_dir="/tmp/agent-os-template/.agent-template"
+  template_dir="/tmp/agent-os-template"
 fi
 
 bash "$template_dir/scripts/install.sh" "$PWD"

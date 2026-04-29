@@ -10,11 +10,11 @@
 
 ## TL;DR
 
-1. **One template** lives in your repo at `.agent-template/`.
-2. **Two markdown files** at your repo root (`AGENTS.md`, `HANDOFF.md`) tell every AI the rules and current state.
-3. **Three git hooks + four GitHub Actions workflows** make sure no AI (or human) accidentally leaks secrets, pushes to main, or commits binaries.
-4. **Branch protection** in GitHub settings makes the workflows authoritative.
-5. **A handoff is just `git push`** — the next AI clones, reads two files, and continues.
+1. **The real pain:** every AI coding tool has a usage cap (or isn't the right model for the task), and switching tools means losing 30 minutes re-onboarding the new one.
+2. **The fix:** install Agent OS into your project's repo (one command). It drops `AGENTS.md`, hooks, CI workflows, ADR scaffold into your repo. Files get committed.
+3. **Daily use:** when one AI hits a wall, push your work-in-progress, open whichever AI tool still has runway, tell it to read `AGENTS.md` and the latest session log. Productive in ~2 minutes, not ~30.
+4. **Bonus security layer:** gitleaks secret scanning, branch protection automation, Conventional Commits enforcement, cross-platform support — all enforced server-side via GitHub Actions.
+5. **A handoff is just `git push` → `git clone` → "read AGENTS.md."** That's the entire protocol.
 
 That's the whole system. Everything below is the why and the how.
 
@@ -55,15 +55,25 @@ If your stack isn't covered, the installer writes a `TODO`-marked `bootstrap.yam
 
 ### The problem
 
-You're a solo founder. You built half the product with Claude Code. Today you're traveling and only have a Windows laptop with Codex. You sit down to work and:
+You're 6 hours deep into a hard problem in **Claude Code**. The model is dialed in. You're 30 minutes from shipping a fix.
 
-- You don't remember what state you left the project in.
-- Codex doesn't know what conventions you've established.
-- You're not sure if there are uncommitted changes on your other machine.
-- You panic-paste a Supabase service-role key into a config file. Did you commit it?
-- You merge a feature directly into `main` because you forgot the rule about feature branches.
+Then you see this:
 
-Multiply by a real codebase across multiple machines and multiple AI tools. The pain compounds.
+> *"You've reached your weekly usage limit. Resets in 3 days."*
+
+You have three bad options:
+
+1. **Wait 3 days** — lose flow state, miss the deadline.
+2. **Pay the API** — a serious agentic dev day on the API costs hundreds of dollars; the whole point of the subscription was to avoid this.
+3. **Switch to a different AI** (Codex, Cursor, Cline, Aider — whichever still has runway) — but the new tool knows nothing about your project. You spend 30 minutes re-onboarding it.
+
+Variations of the same wall:
+
+- The model is just **wrong for this task** (different reasoning, different context window, different strengths). You need to switch tools mid-session.
+- You **change machines** — work laptop, second device, different OS, different AI installed there.
+- **Someone else picks the project up** — a teammate, a contractor, future-you in three months.
+
+In every variation, the core friction is identical: switching tools means losing your place. Unless the project carries its own rules + status + conventions inside the repo itself.
 
 ### The insight
 
@@ -125,7 +135,7 @@ Paste this verbatim:
 I want to install Agent OS on this repo. I have a .credentials.local
 file with my GH_PAT. Run this command and report what happens:
 
-bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.1.0/scripts/autonomous-install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/autonomous-install.sh)
 
 If it pauses at a TODO in bootstrap.yaml, fill in reasonable values
 based on the repo contents and re-run. Don't ask me unless something
@@ -166,8 +176,8 @@ git init -b main
 ### Step 2: Run the installer
 
 ```bash
-AGENT_OS_REF=v2.1.0 bash <(curl -fsSL \
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.1.0/scripts/install.sh)
+AGENT_OS_REF=v2.3.0 bash <(curl -fsSL \
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/install.sh)
 ```
 
 The installer:
@@ -218,7 +228,7 @@ The pre-commit hook works without gitleaks (falls back to a small regex set), bu
 ```bash
 git checkout -b chore/install-agent-os
 git add .
-git commit -m "chore: install Agent OS v2.1.0"
+git commit -m "chore: install Agent OS v2.3.0"
 git push -u origin chore/install-agent-os
 ```
 
@@ -261,7 +271,7 @@ If you have an existing `.gitignore`, `pre-commit` hook, or `docs/decisions/`, t
 
 If you have **Husky** or **lefthook** already wired, the installer refuses to run. Pick one approach:
 - Remove the existing hook manager → re-run installer.
-- Manually merge `.agent-template/.githooks/pre-commit` into your existing config.
+- Manually merge `.githooks/pre-commit` from this repo into your existing config.
 
 ---
 
@@ -535,7 +545,7 @@ git reset --hard
 ### "gitleaks isn't installed but my push went through anyway"
 
 The pre-push hook hard-fails without gitleaks (since v2.1.0). If your push went through:
-- You're on an old install — run `bash scripts/agent-os-update.sh v2.1.0`.
+- You're on an old install — run `bash scripts/agent-os-update.sh v2.3.0`.
 - You set `AGENT_OS_SKIP_GITLEAKS=1`. Re-think that.
 - Server-side CI will still scan. Don't rely on bypass.
 
@@ -645,7 +655,9 @@ For everything in between — solo founder, small team, AI-assisted, multi-machi
 | v1.0.0 | shipped | Initial template, regex pre-commit |
 | v2.0.0 | shipped | gitleaks, CI workflows, sessions log, hooks |
 | v2.1.0 | shipped | bash 3.2 fix, JWT regex, squash-merge fix, CRLF/Windows handling, CHANGELOG |
-| v2.2.0 | planned | cosign signing of releases, automated branch-protection setup via `gh`, project-type variants (Next/Python/Rust) |
+| v2.2.0 | shipped | autonomous install + stack auto-detection (Node / Python / Rust / Go / Ruby / PHP / Elixir / Java / Deno) |
+| v2.3.0 | shipped | multi-tool symlinks (CLAUDE.md / .cursorrules / .clinerules / .continuerules / CONVENTIONS.md), legacy config import, peer comparison |
+| v2.4.0 | planned | cosign signing of releases, automated branch-protection setup via `gh` for non-PAT users (GitHub OIDC), project-type variants (Next/Python/Rust starters) |
 | v3.0.0 | future | SLSA Level 3 provenance, tamper-detection workflow, policy-as-code |
 
 ---
@@ -709,7 +721,7 @@ bash scripts/agent-os-validate.sh
 
 # Update to latest template version
 bash scripts/agent-os-update.sh
-bash scripts/agent-os-update.sh v2.1.0       # pin to specific version
+bash scripts/agent-os-update.sh v2.3.0       # pin to specific version
 
 # Uninstall
 bash scripts/agent-os-uninstall.sh
@@ -774,7 +786,7 @@ Step 1 — Create .credentials.local in the repo root (gitignored automatically)
   Get one at https://github.com/settings/tokens?type=beta
 
 Step 2 — Run the autonomous installer:
-  bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/autonomous-install.sh)
+  bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/autonomous-install.sh)
 
 The installer will:
 - Auto-detect my tech stack (Node/Python/Rust/Go/Ruby/PHP/Elixir/Java/Deno)
@@ -793,25 +805,25 @@ Report when done. Don't ask me unless something is genuinely ambiguous.
 
 ```
 Autonomous installer (single command, full automation):
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/autonomous-install.sh
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/autonomous-install.sh
 
 Manual installer (if you don't have a GH_PAT, drops files only):
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/install.sh
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/install.sh
 
 Stack detector (standalone, prints YAML):
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/detect-stack.sh
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/detect-stack.sh
 
 Validator:
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/validate.sh
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/validate.sh
 
 Updater:
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/update.sh
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/update.sh
 
 Uninstaller:
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/uninstall.sh
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/uninstall.sh
 
 PDF rebuilder:
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/scripts/build-pdf.py
+  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/build-pdf.py
 ```
 
 ### Configuration files (inline — copy directly)
@@ -895,55 +907,56 @@ These are dropped into your project by the installer. The AI doesn't need to rea
 
 ```
 Documentation:
-  AGENTS.md           https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/AGENTS.md
-  SECURITY.md         https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/SECURITY.md
-  README.md           https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/README.md
-  PLAYBOOK.md         https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/PLAYBOOK.md
-  QUICKSTART.md       https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/QUICKSTART.md
-  CHANGELOG.md        https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/CHANGELOG.md
-  PLAYBOOK.pdf        https://github.com/munsanco13/agent-os/raw/v2.2.0/.agent-template/PLAYBOOK.pdf
+  AGENTS.md           https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/AGENTS.md
+  SECURITY.md         https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/SECURITY.md
+  README.md           https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/README.md
+  PLAYBOOK.md         https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/PLAYBOOK.md
+  QUICKSTART.md       https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/QUICKSTART.md
+  CHANGELOG.md        https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/CHANGELOG.md
+  INSTALL.md          https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/INSTALL.md
+  CONTRIBUTING.md     https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/CONTRIBUTING.md
 
 Configuration:
-  .gitleaks.toml      https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.gitleaks.toml
-  .gitattributes      https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.gitattributes
-  .gitignore-additions https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.gitignore-additions
-  VERSION             https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/VERSION
+  .gitleaks.toml      https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.gitleaks.toml
+  .gitattributes      https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.gitattributes
+  .gitignore-additions https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.gitignore-additions
+  VERSION             https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/VERSION
 
 Git hooks (.githooks/):
-  pre-commit          https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.githooks/pre-commit
-  commit-msg          https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.githooks/commit-msg
-  pre-push            https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.githooks/pre-push
+  pre-commit          https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.githooks/pre-commit
+  commit-msg          https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.githooks/commit-msg
+  pre-push            https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.githooks/pre-push
 
 GitHub Actions workflows (.github/workflows/):
-  security.yml                  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/workflows/security.yml
-  pr-checks.yml                 https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/workflows/pr-checks.yml
-  branch-protection-audit.yml   https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/workflows/branch-protection-audit.yml
-  hook-tests.yml                https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/workflows/hook-tests.yml
+  security.yml                  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/workflows/security.yml
+  pr-checks.yml                 https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/workflows/pr-checks.yml
+  branch-protection-audit.yml   https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/workflows/branch-protection-audit.yml
+  hook-tests.yml                https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/workflows/hook-tests.yml
 
 GitHub repo files (.github/):
-  CODEOWNERS                    https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/CODEOWNERS
-  pull_request_template.md      https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/pull_request_template.md
-  dependabot.yml                https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/dependabot.yml
-  SECURITY.md                   https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.github/SECURITY.md
+  CODEOWNERS                    https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/CODEOWNERS
+  pull_request_template.md      https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/pull_request_template.md
+  dependabot.yml                https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/dependabot.yml
+  SECURITY.md                   https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.github/SECURITY.md
 
 ADR templates (docs/decisions/):
-  README.md                              https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/decisions/README.md
-  0000-template.md                       https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/decisions/0000-template.md
-  0001-multi-ai-continuity.md            https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/decisions/0001-multi-ai-continuity.md
-  0002-secret-scanning-with-gitleaks.md  https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/decisions/0002-secret-scanning-with-gitleaks.md
-  0003-server-side-enforcement.md        https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/decisions/0003-server-side-enforcement.md
-  0004-cross-platform-handoff.md         https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/decisions/0004-cross-platform-handoff.md
+  README.md                              https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/decisions/README.md
+  0000-template.md                       https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/decisions/0000-template.md
+  0001-multi-ai-continuity.md            https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/decisions/0001-multi-ai-continuity.md
+  0002-secret-scanning-with-gitleaks.md  https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/decisions/0002-secret-scanning-with-gitleaks.md
+  0003-server-side-enforcement.md        https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/decisions/0003-server-side-enforcement.md
+  0004-cross-platform-handoff.md         https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/decisions/0004-cross-platform-handoff.md
 
 Sessions log (docs/sessions/):
-  README.md       https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/sessions/README.md
-  _template.md    https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/docs/sessions/_template.md
+  README.md       https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/sessions/README.md
+  _template.md    https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/docs/sessions/_template.md
 
 Configuration templates:
-  bootstrap.example.yaml    https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/bootstrap.example.yaml
-  .credentials.example      https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/.credentials.example
+  bootstrap.example.yaml    https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/bootstrap.example.yaml
+  .credentials.example      https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/.credentials.example
 
 Tests:
-  pre-commit.bats   https://raw.githubusercontent.com/munsanco13/agent-os/v2.2.0/tests/pre-commit.bats
+  pre-commit.bats   https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/tests/pre-commit.bats
 ```
 
 ### Browse the entire template
