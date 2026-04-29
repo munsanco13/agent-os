@@ -4,9 +4,9 @@
 
 # Agent OS
 
-### **Install once. Hand off forever. Never leak a secret again.**
+### **Use Claude Code AND Codex AND Cursor on flat-rate subscriptions — without losing context when you switch.**
 
-**The drop-in template that lets Claude, Codex, Cursor, and any AI assistant safely share a codebase — without losing context, leaking secrets, or stepping on each other.**
+**The drop-in template that lets you mix AI coding subscriptions seamlessly, so you can pay subscription prices instead of pay-per-token API bills no matter which tools you choose.**
 
 [![Version](https://img.shields.io/github/v/tag/munsanco13/agent-os?label=version&color=2563eb)](https://github.com/munsanco13/agent-os/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -16,7 +16,7 @@
 
 [**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 &nbsp;·&nbsp;
-[**Why this exists**](#the-problem-this-solves)
+[**The cost math**](#the-real-problem-api-costs-are-eating-you-alive)
 &nbsp;·&nbsp;
 [**See it vs alternatives**](#how-agent-os-compares)
 &nbsp;·&nbsp;
@@ -26,56 +26,67 @@
 
 ---
 
-## The problem this solves
+## The real problem: API costs vs. subscriptions
 
-You're using **multiple AI assistants** to ship software in 2026:
-Claude Code at home. Codex on your work laptop. Cursor when pair-programming. Sometimes Aider in the terminal.
+If you code seriously with AI in 2026, you have two ways to pay:
 
-It's chaos, and you know it:
+### Option A — Pay per token (the API)
+You wire up your own API keys to Anthropic, OpenAI, etc. Every prompt is metered. With modern agentic tooling that spawns sub-agents and burns through context, **a single serious development day can cost hundreds of dollars in API charges.** Heavy users see four-figure monthly bills routinely.
 
-- 🤯 **Every new session starts cold.** You re-paste context, re-explain conventions, re-litigate decisions you already made last week.
-- 🔥 **You almost leaked a secret.** Maybe last Tuesday with that `.env` you nearly committed. Maybe a service-role key your AI suggested putting in `config.ts`.
-- 🪦 **Your `main` branch is unprotected.** You meant to set up branch protection. You haven't. Anyone with push access can `--no-verify` past anything.
-- 📦 **Each AI tool reads a different config file.** Claude wants `CLAUDE.md`. Cursor wants `.cursorrules`. Codex wants `AGENTS.md`. Cline wants `.clinerules`. You either maintain 5 duplicate files or accept that 4 AIs ignore your rules.
-- 🌪 **Switching machines means losing your place.** Your laptop has the env vars, the IDE state, the dev server running. The other device has nothing.
-- 🤝 **Handing off to a new AI is a 30-minute brain dump.** "Here's what we did. Here's why. Here's what's next. Don't touch X. Watch out for Y..."
+### Option B — Flat-rate subscription products
+The same companies sell flat-rate subscription products that include the desktop apps:
 
-**Most "AI workflow" tools solve one of these. Agent OS solves all of them in a single 5-minute install.**
+- **Claude Pro / Claude Max** → Claude Code in the desktop app
+- **ChatGPT Plus / Pro** → Codex in the desktop app
+- **Cursor Pro / Business** → Cursor with multi-model access
+- (And free tiers / lower tiers exist for lighter users)
 
----
+**Whatever tier you're on, subscriptions are dramatically cheaper than API for the same actual usage.** The exact savings depend on your tier and your usage, but for serious developers it's typically **5–50× less expensive** to pay flat-rate than to meter via API.
 
-## What Agent OS gives you
+So why doesn't everyone just use subscriptions?
 
-A protected, AI-friendly project where any agent can pick up where the last one left off — without you re-onboarding them every time.
+### Because switching between subscription tools is painful
 
-### Value Stack (what's actually inside)
+- Claude Code on your home MacBook
+- Codex Desktop on your work laptop
+- Cursor when pair-programming
+- Each time you switch, the new AI starts cold:
+  - 🤯 Re-explain the project
+  - 🔁 Re-paste conventions and rules
+  - 🪦 Lose the thread of what you were doing
+  - 🎯 Re-onboard with current state, pending work, sharp edges
+- **A 30-minute handoff every time you switch tools = real productivity tax**
 
-Each item below is something you would otherwise spend hours building yourself, or skip entirely:
+So most devs either pick one tool and stick with it (eating the productivity loss when it's not the best tool for a task) or eat the API bill (so they can switch tools without losing state).
 
-| ✅ Capability | What it replaces | Hours saved (est.) |
-|---|---|---:|
-| **Auto-detected stack config** for Node/Python/Rust/Go/Ruby/PHP/Elixir/Java/Deno + 15+ frameworks | Manually documenting build/test/lint commands | ~2h |
-| **Single source-of-truth `AGENTS.md`** with symlinks to `CLAUDE.md`, `.cursorrules`, `.clinerules`, `.continuerules`, `CONVENTIONS.md` | Maintaining 5+ duplicate config files | ~3h |
-| **Server-side secret scanning** (gitleaks Action) on every push and PR | Building/configuring a secret scanner | ~4h |
-| **Local pre-commit / commit-msg / pre-push hooks** with gitleaks + Conventional Commits + force-push refusal | Writing 3 hooks from scratch | ~4h |
-| **GitHub Actions workflows**: secret-scan, large-files, no-direct-pushes, hooks-integrity, placeholder-lint, pr-title, pr-body | Designing + writing 4 CI workflows | ~8h |
-| **Branch protection automation via `gh api`** | Clicking 12 boxes in GitHub Settings | ~30 min (repeated for every project) |
-| **Weekly branch-protection drift audit** | Manual quarterly checks | ~ongoing |
-| **ADR (Architecture Decision Records) scaffold** | Setting up + maintaining a decisions log | ~2h |
-| **Per-session work logs** (replaces flaky `HANDOFF.md` merge conflicts) | Custom changelog discipline | ~ongoing |
-| **Cross-platform support** (Mac/Linux/WSL/Git Bash) via `.gitattributes` + exec-bit-in-git | Debugging Windows line-ending issues | ~4h |
-| **CODEOWNERS, PR template, Dependabot, vulnerability disclosure** | Boilerplate every repo eventually needs | ~2h |
-| **Threat-modeled `SECURITY.md`** with explicit defended/not-defended scope | Pretending you have a threat model | ~3h |
-| **`import.sh` to ingest legacy CLAUDE.md / .cursorrules / etc. into AGENTS.md** | Manually merging duplicate AI configs | ~1h |
-| **`validate.sh`, `update.sh`, `uninstall.sh`** for lifecycle management | Hand-rolling install/upgrade scripts | ~2h |
-
-**Replacement-cost value: ~35 hours of senior security/DX engineering work.** At $200/hr, that's **~$7,000 of work, free, installed in 5 minutes.**
-
-But the real value isn't the build time — it's the leaked-secret you didn't ship to GitHub, the AI session that didn't waste 30 minutes re-onboarding, the production push someone tried to force-merge but couldn't.
+**Agent OS removes the switching tax. Use whichever subscription you've already paid for, switch between them seamlessly, and never get locked into a single vendor's tooling.**
 
 ---
 
-## How this works (read this if you're confused)
+## How Agent OS solves it
+
+The insight: **every AI tool reads markdown files in your repo.** They just look for different filenames.
+
+- Claude Code reads `CLAUDE.md`
+- Codex reads `AGENTS.md`
+- Cursor reads `.cursorrules`
+- Cline reads `.clinerules`
+- Continue.dev reads `.continuerules`
+- Aider reads `CONVENTIONS.md`
+
+Agent OS installs into your project and:
+1. **Creates one source-of-truth file** (`AGENTS.md`) describing your project, tech stack, conventions, and current state
+2. **Symlinks all the other filenames to it** so every AI tool sees the same content
+3. **Adds a `docs/sessions/` log** so each AI can leave a note for the next ("here's what I just did, here's what's pending, here's what to watch out for")
+4. **Adds an `AGENTS.md` section that AI agents auto-read on every fresh session** so they bootstrap themselves with current state in 30 seconds, not 30 minutes
+
+**The handoff becomes git push → git clone → "read AGENTS.md and the latest session log."** That's it. Total switch time: ~2 minutes.
+
+You also get (as a bonus) a hardened repo: no committed secrets, no force-push to `main`, no rogue branches. But that's the side benefit — the headline is *use cheap subscriptions interchangeably.*
+
+---
+
+## How this works (the install, plain)
 
 **Agent OS works exactly like installing a dev dependency** — think `npm install eslint --save-dev` or `pip install -r requirements.txt`.
 
@@ -118,93 +129,93 @@ For the manual install path (no AI handy), or for a deep walkthrough, see [`INST
 
 ---
 
-## What gets dropped into your project
+## What you get
 
-After install, your repo (e.g. `cool-app/`) gets these new files:
+### 1. Subscription costs become viable (the headline)
 
-```
-cool-app/
-├── AGENTS.md                                 # universal AI contract every agent reads first
-├── SECURITY.md                               # threat model + hard rules
-├── HANDOFF.md                                # rolling status snapshot
-├── CLAUDE.md → AGENTS.md                     # symlink: Claude Code finds the rules
-├── .cursorrules → AGENTS.md                  # symlink: Cursor
-├── .clinerules → AGENTS.md                   # symlink: Cline
-├── .continuerules → AGENTS.md                # symlink: Continue.dev
-├── CONVENTIONS.md → AGENTS.md                # symlink: Aider
-├── .gitleaks.toml                            # gitleaks config
-├── .gitattributes                            # cross-platform line endings
-├── .agent-os-version                         # records installed version
-│
-├── docs/
-│   ├── sessions/                             # per-session work logs
-│   └── decisions/                            # ADRs (architecture records)
-│
-├── .githooks/
-│   ├── pre-commit                            # gitleaks + filename + size + main-branch refusal
-│   ├── commit-msg                            # Conventional Commits
-│   └── pre-push                              # force-push refusal + range scan
-│
-├── .github/
-│   ├── workflows/  (4 workflows)             # secret-scan, pr-checks, branch-protection-audit, hook-tests
-│   ├── CODEOWNERS                            # required reviewers
-│   ├── pull_request_template.md              # forces Summary + Test plan
-│   ├── dependabot.yml                        # weekly dep updates
-│   └── SECURITY.md                           # vulnerability disclosure
-│
-└── scripts/
-    ├── agent-os-validate.sh                  # check install integrity
-    ├── agent-os-update.sh                    # pull newer template
-    └── agent-os-uninstall.sh                 # reverse install
-```
+Switching between AI subscriptions used to take 30 minutes per handoff. Agent OS reduces it to ~2 minutes:
 
-(All paths above are inside YOUR project, not inside agent-os.)
+- Stay on whatever subscription tier you've already paid for (Claude Pro, Claude Max, ChatGPT Plus, ChatGPT Pro, Cursor Pro, Cursor Business — your call)
+- Switch between Claude Code, Codex Desktop, and Cursor based on which is best for the task at hand
+- Never need to spin up the API just because "the other tool would have been better here"
+- For most serious developers, this means **flat-rate subscription pricing instead of metered API pricing — typically 5–50× cheaper depending on usage**
+
+**The math suddenly works in favor of subscriptions.**
+
+### 2. Multi-AI continuity (what you actually use day-to-day)
+
+| Capability | What it does for you |
+|---|---|
+| Single source-of-truth `AGENTS.md` | Edit once, every AI tool reads the same content |
+| Symlinks for `CLAUDE.md`, `.cursorrules`, `.clinerules`, `.continuerules`, `CONVENTIONS.md` | Five AI tools all read your one file — no duplicate maintenance |
+| `docs/sessions/` log pattern | Each AI session ends with a 1-paragraph note for the next AI |
+| `docs/decisions/` (ADRs) | Architectural decisions get documented once, every future AI reads them |
+| Stack auto-detection (Node/Python/Rust/Go/Ruby/PHP/Elixir/Java/Deno + 15 frameworks) | The installer fills in your install/dev/test/lint commands so AI tools know how to actually build your code |
+| Cross-platform support (Mac/Linux/WSL/Git Bash) | Switching between MacBook and Windows/WSL Just Works |
+
+### 3. Repo hygiene + security (the bonus you didn't ask for but will appreciate)
+
+| Capability | What it prevents |
+|---|---|
+| Pre-commit hook with gitleaks | Catches `.env` files, API keys, JWTs before they leave your laptop |
+| Server-side gitleaks-action on every push and PR | Backstop in case you bypass the local hook |
+| `pre-push` force-push refusal | Protects shared branches from history rewrites |
+| `commit-msg` Conventional Commits enforcement | Keeps your git log readable across multiple contributors |
+| GitHub branch protection automation (via `gh api`) | No direct pushes to main, required reviews, required CI checks |
+| Weekly drift audit | Opens an issue if branch protection gets disabled |
+| Dependabot configuration | Weekly dep security updates |
+| `CODEOWNERS`, PR templates, vulnerability disclosure | The boilerplate every repo eventually needs |
+
+### 4. Developer experience polish
+
+- `validate.sh` — one command confirms install integrity
+- `update.sh` — pull newer template versions with diff preview
+- `uninstall.sh` — clean reverse install
+- `import.sh` — merge legacy `CLAUDE.md` / `.cursorrules` into unified `AGENTS.md`
 
 ---
 
 ## How Agent OS compares
 
-We benchmarked against the 5 most relevant peer tools in the multi-AI workflow space. Here's the honest scorecard:
+We benchmarked against the 5 most relevant peer tools. Each solves a different slice of the AI-tooling space:
 
 | Capability | [any-llm](https://github.com/mozilla-ai/any-llm) | [CCB](https://github.com/bfly123/claude_codex_bridge) | [ccode-to-codex](https://github.com/zuharz/ccode-to-codex) | [palot](https://github.com/itswendell/palot) | [agents-md-vsc](https://github.com/kamilio/agents-md-vscode-extension) | **Agent OS** |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|
 | Multi-AI filename aliases | ❌ | ❌ | ❌ | ❌ | 1 | **5** |
 | Legacy config import | ❌ | ❌ | partial | ❌ | ❌ | **✅** |
-| Server-side CI enforcement | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | Stack auto-detection (10+ stacks) | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | Cross-platform Mac↔Windows | partial | partial | ❌ | ✅ | ✅ | **✅** |
 | Autonomous install via API | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | ADRs + sessions log | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
-| Threat-modeled SECURITY.md | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Server-side CI enforcement | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | Branch protection automation | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Threat-modeled SECURITY.md | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | Parallel agent runtime | ❌ | **✅** | ❌ | ❌ | ❌ | n/a (use CCB) |
 | Desktop GUI | ❌ | ❌ | ❌ | **✅** | ❌ | n/a (use palot) |
 | LLM provider SDK | **✅** | ❌ | ❌ | ❌ | ❌ | n/a (use any-llm) |
 
-**Agent OS owns 9 of 12 capability dimensions.** The 3 we don't own are deliberately out of scope (parallel runtime, GUI, SDK) — and the [PLAYBOOK](PLAYBOOK.md) explicitly recommends those tools when you need them. **Agent OS is the base layer the others sit on top of.**
-
----
-
-## Why now
-
-In 2026, three things happened simultaneously:
-
-1. **AI assistants multiplied.** Claude Code, Codex, Cursor, Cline, Aider, Continue.dev, Cody, Tabnine — most devs use 2+. None of them read each other's config formats by default.
-2. **Token costs collapsed.** Every project now uses AI assistants for real work, not just demos. The cost of a leaked secret skyrocketed — supply-chain attacks now scrape every public repo within minutes of a push.
-3. **GitHub Actions matured to the point** where you can fully automate branch protection + secret scanning + PR validation server-side, eliminating the "I'll set it up later" trap.
-
-**Agent OS is the convergence: a single drop-in template that fixes multi-AI chaos AND modern security hygiene, in one install, free.**
+**Agent OS owns 9 of 12 capability dimensions.** The 3 we don't own are deliberately out of scope (parallel runtime, GUI, SDK). Agent OS is the base layer the others sit on top of.
 
 ---
 
 ## FAQ
 
 <details>
+<summary><b>Is this really about cost savings, or is it a security tool?</b></summary>
+
+It's primarily about **multi-AI workflow continuity** so you can use whatever subscription tools you're already paying for (Claude Pro, Claude Max, ChatGPT Plus/Pro, Cursor Pro/Business — whichever tier fits your usage) interchangeably without the 30-minute re-onboarding tax that makes switching painful.
+
+For most serious developers, flat-rate subscriptions are 5–50× cheaper than metered API usage at the same level of work — but that math only works if switching between tools is fast. Agent OS makes it fast.
+
+The security/hygiene features (gitleaks, branch protection, hooks) are real and ship by default — but they're a side benefit. The headline is "use the subscriptions you're already paying for, interchangeably."
+</details>
+
+<details>
 <summary><b>Does this work with my tech stack?</b></summary>
 
 Almost certainly yes. The auto-detector covers **Node.js (Next.js, Vite, Remix, NestJS, Express, Fastify, SvelteKit, React)**, **Python (uv, Poetry, pip, pipenv)**, **Rust**, **Go**, **Ruby (Rails)**, **PHP (Laravel, Symfony)**, **Elixir (Phoenix)**, **Java (Maven, Gradle, Spring Boot)**, and **Deno**.
 
-If your stack isn't covered, the installer writes a `bootstrap.yaml` with `TODO` markers and the rest of the system works identically. Stack-agnostic by design.
+If your stack isn't covered, the installer writes a `bootstrap.yaml` with `TODO` markers and the rest of the system works identically.
 </details>
 
 <details>
@@ -213,18 +224,6 @@ If your stack isn't covered, the installer writes a `bootstrap.yaml` with `TODO`
 **No.** You install Agent OS into your project's repo **once, on any machine.** The files get committed. Every other device that clones your project gets Agent OS automatically — because the files are inside your repo. They never visit the agent-os repo.
 
 Think `npm install eslint --save-dev`. You install ESLint once, commit it, and every other dev who clones your project gets it for free.
-</details>
-
-<details>
-<summary><b>Is this safe to install in a private/work repo?</b></summary>
-
-Yes. The installer:
-- Never overwrites existing files
-- Refuses to run if you have a competing hook manager (Husky, lefthook, pre-commit) without explicit guidance
-- Drops files only — no telemetry, no network calls after install (other than fetching files from this public repo)
-- Source code is auditable; it's all bash + TOML + Markdown
-
-The whole template is MIT-licensed and ~3,000 lines of bash + YAML you can read in an hour.
 </details>
 
 <details>
@@ -237,6 +236,14 @@ bash scripts/agent-os-import.sh
 ```
 
 It backs up originals, merges them, and replaces with symlinks pointing at `AGENTS.md`. Audit log + reversible.
+</details>
+
+<details>
+<summary><b>I just want to use one AI tool. Do I need this?</b></summary>
+
+Probably not. Agent OS pays for itself when you use 2+ AI tools. If you're committed to a single tool (e.g. only Claude Code, only Codex), the security features still apply but the multi-AI continuity layer is unused.
+
+For single-tool users, the security features alone may not justify the install — your time may be better spent on `husky` or `pre-commit-py` for hooks and a manual GitHub branch protection setup.
 </details>
 
 <details>
@@ -263,11 +270,15 @@ Removes hooks, workflows, scripts, configs. Leaves your customized `AGENTS.md`, 
 </details>
 
 <details>
-<summary><b>Why is this free?</b></summary>
+<summary><b>Is this safe to install in a private/work repo?</b></summary>
 
-Because **multi-AI workflow chaos is a real problem worth solving for everyone**, and the security baseline this enforces (no committed secrets, no force-push to main, no rogue branches) is so universally beneficial that gatekeeping it would be net-negative.
+Yes. The installer:
+- Never overwrites existing files
+- Refuses to run if you have a competing hook manager (Husky, lefthook, pre-commit) without explicit guidance
+- Drops files only — no telemetry, no network calls after install (other than fetching files from this public repo)
+- Source code is auditable; it's all bash + TOML + Markdown
 
-Built by [@munsanco13](https://github.com/munsanco13). MIT license. PRs welcome. ⭐ if it helps.
+The whole template is MIT-licensed and ~3,000 lines you can read in an hour.
 </details>
 
 <details>
@@ -279,6 +290,14 @@ bash scripts/agent-os-update.sh v2.4.0    # pin to a specific version
 ```
 
 Shows you the diff, applies on approval. Your `AGENTS.md` and `SECURITY.md` are user-owned post-install — the updater never touches them.
+</details>
+
+<details>
+<summary><b>Why is this free?</b></summary>
+
+Because **multi-AI workflow chaos is a problem worth solving for everyone**, and gatekeeping it would be net-negative.
+
+Built by [@munsanco13](https://github.com/munsanco13). MIT license. PRs welcome. ⭐ if it helps.
 </details>
 
 ---
@@ -298,14 +317,9 @@ Shows you the diff, applies on approval. Your `AGENTS.md` and `SECURITY.md` are 
 
 ## Contributing
 
-PRs welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md). All contributors must:
+PRs welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-1. Sign commits with the project's git hooks active (`bash scripts/agent-os-validate.sh` to confirm)
-2. Open PRs against `main` (no direct pushes — the workflows enforce this on this repo too)
-3. Follow Conventional Commits for commit messages
-4. Pass all CI checks (the same ones the template installs)
-
-This repo eats its own dog food. Every commit goes through the gates Agent OS installs into other projects.
+This repo eats its own dog food — every commit goes through the gates Agent OS installs into other projects.
 
 ---
 
@@ -313,15 +327,15 @@ This repo eats its own dog food. Every commit goes through the gates Agent OS in
 
 [MIT License](LICENSE) · Built by [Mundo Sanchez](https://github.com/munsanco13)
 
-If Agent OS saves you time, **⭐ the repo** — it's the single highest-signal way to surface this for other devs.
+If Agent OS saves you money or time, **⭐ the repo**.
 
-For the full design rationale, threat model, and 60-page deep dive: [`PLAYBOOK.md`](PLAYBOOK.md).
+For the full design rationale, threat model, and deep dive: [`PLAYBOOK.md`](PLAYBOOK.md).
 
 ---
 
 <div align="center">
 
-**Stop losing your mind switching between AI tools. Install once, hand off forever.**
+**Stop choosing between cheap-and-clunky or expensive-and-smooth. Use both.**
 
 [**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 
