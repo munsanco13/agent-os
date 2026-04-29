@@ -1,20 +1,77 @@
-# Agent OS — Multi-AI Continuity & Security Template
+<div align="center">
 
-A drop-in template that lets a project safely use **multiple AI assistants interchangeably** (Claude Code, Codex, Cursor, Cline, Aider, GPT-5.5, local models) without losing context, leaking secrets, or stepping on each other.
+<img src="docs/images/hero.png" alt="Agent OS — multi-AI handover" width="100%" />
 
-**Version:** 2.3.0 · **License:** MIT · **Author:** Mundo Sanchez ([@munsanco13](https://github.com/munsanco13))
+# Agent OS
+
+### **Install once. Hand off forever. Never leak a secret again.**
+
+**The drop-in template that lets Claude, Codex, Cursor, and any AI assistant safely share a codebase — without losing context, leaking secrets, or stepping on each other.**
+
+[![Version](https://img.shields.io/github/v/tag/munsanco13/agent-os?label=version&color=2563eb)](https://github.com/munsanco13/agent-os/releases)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/munsanco13/agent-os?style=social)](https://github.com/munsanco13/agent-os/stargazers)
+[![Issues](https://img.shields.io/github/issues/munsanco13/agent-os)](https://github.com/munsanco13/agent-os/issues)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
+
+[**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
+&nbsp;·&nbsp;
+[**Why this exists**](#the-problem-this-solves)
+&nbsp;·&nbsp;
+[**See it vs alternatives**](#how-agent-os-compares)
+&nbsp;·&nbsp;
+[**Read the playbook**](PLAYBOOK.md)
+
+</div>
 
 ---
 
-## Install (paste this into your AI)
+## The problem this solves
 
-In your project's repo, paste this single message into Claude Code, Codex, Cursor, Cline, or any AI coding assistant with shell access:
+You're using **multiple AI assistants** to ship software in 2026:
+Claude Code at home. Codex on your work laptop. Cursor when pair-programming. Sometimes Aider in the terminal.
 
-> Install Agent OS in this repo. The instructions are at https://github.com/munsanco13/agent-os — read the README, then run the autonomous installer. Use my existing `gh` CLI authentication (run `gh auth status` first to confirm). The installer auto-detects my tech stack, drops template files, opens an install PR, configures GitHub branch protection via the API, and validates. No setup needed from me. Report when done.
+It's chaos, and you know it:
 
-The AI handles everything. Total time: ~2-5 minutes.
+- 🤯 **Every new session starts cold.** You re-paste context, re-explain conventions, re-litigate decisions you already made last week.
+- 🔥 **You almost leaked a secret.** Maybe last Tuesday with that `.env` you nearly committed. Maybe a service-role key your AI suggested putting in `config.ts`.
+- 🪦 **Your `main` branch is unprotected.** You meant to set up branch protection. You haven't. Anyone with push access can `--no-verify` past anything.
+- 📦 **Each AI tool reads a different config file.** Claude wants `CLAUDE.md`. Cursor wants `.cursorrules`. Codex wants `AGENTS.md`. Cline wants `.clinerules`. You either maintain 5 duplicate files or accept that 4 AIs ignore your rules.
+- 🌪 **Switching machines means losing your place.** Your laptop has the env vars, the IDE state, the dev server running. The other device has nothing.
+- 🤝 **Handing off to a new AI is a 30-minute brain dump.** "Here's what we did. Here's why. Here's what's next. Don't touch X. Watch out for Y..."
 
-For more detail (or if you don't have an AI handy and want to install manually), see [`INSTALL.md`](./INSTALL.md).
+**Most "AI workflow" tools solve one of these. Agent OS solves all of them in a single 5-minute install.**
+
+---
+
+## What Agent OS gives you
+
+A protected, AI-friendly project where any agent can pick up where the last one left off — without you re-onboarding them every time.
+
+### Value Stack (what's actually inside)
+
+Each item below is something you would otherwise spend hours building yourself, or skip entirely:
+
+| ✅ Capability | What it replaces | Hours saved (est.) |
+|---|---|---:|
+| **Auto-detected stack config** for Node/Python/Rust/Go/Ruby/PHP/Elixir/Java/Deno + 15+ frameworks | Manually documenting build/test/lint commands | ~2h |
+| **Single source-of-truth `AGENTS.md`** with symlinks to `CLAUDE.md`, `.cursorrules`, `.clinerules`, `.continuerules`, `CONVENTIONS.md` | Maintaining 5+ duplicate config files | ~3h |
+| **Server-side secret scanning** (gitleaks Action) on every push and PR | Building/configuring a secret scanner | ~4h |
+| **Local pre-commit / commit-msg / pre-push hooks** with gitleaks + Conventional Commits + force-push refusal | Writing 3 hooks from scratch | ~4h |
+| **GitHub Actions workflows**: secret-scan, large-files, no-direct-pushes, hooks-integrity, placeholder-lint, pr-title, pr-body | Designing + writing 4 CI workflows | ~8h |
+| **Branch protection automation via `gh api`** | Clicking 12 boxes in GitHub Settings | ~30 min (repeated for every project) |
+| **Weekly branch-protection drift audit** | Manual quarterly checks | ~ongoing |
+| **ADR (Architecture Decision Records) scaffold** | Setting up + maintaining a decisions log | ~2h |
+| **Per-session work logs** (replaces flaky `HANDOFF.md` merge conflicts) | Custom changelog discipline | ~ongoing |
+| **Cross-platform support** (Mac/Linux/WSL/Git Bash) via `.gitattributes` + exec-bit-in-git | Debugging Windows line-ending issues | ~4h |
+| **CODEOWNERS, PR template, Dependabot, vulnerability disclosure** | Boilerplate every repo eventually needs | ~2h |
+| **Threat-modeled `SECURITY.md`** with explicit defended/not-defended scope | Pretending you have a threat model | ~3h |
+| **`import.sh` to ingest legacy CLAUDE.md / .cursorrules / etc. into AGENTS.md** | Manually merging duplicate AI configs | ~1h |
+| **`validate.sh`, `update.sh`, `uninstall.sh`** for lifecycle management | Hand-rolling install/upgrade scripts | ~2h |
+
+**Replacement-cost value: ~35 hours of senior security/DX engineering work.** At $200/hr, that's **~$7,000 of work, free, installed in 5 minutes.**
+
+But the real value isn't the build time — it's the leaked-secret you didn't ship to GitHub, the AI session that didn't waste 30 minutes re-onboarding, the production push someone tried to force-merge but couldn't.
 
 ---
 
@@ -25,28 +82,39 @@ For more detail (or if you don't have an AI handy and want to install manually),
 1. **You install Agent OS ONCE into YOUR project's repo.** The installer drops files into your project's working tree: `AGENTS.md`, `.githooks/`, `.github/workflows/`, `docs/decisions/`, etc.
 2. **Those files get committed and pushed.** They are now part of your project's git history.
 3. **Anyone (or any AI) who clones your project gets them automatically** — the files are inside your repo. They never visit `github.com/munsanco13/agent-os`.
-4. **After install, the agent-os repo is invisible to you.** You don't keep visiting it. You don't reference it daily. Your project owns those files now, just like ESLint becomes part of your project once it's in `package.json`.
+4. **After install, the agent-os repo is invisible to you.** Your project owns those files now, just like ESLint becomes part of your project once it's in `package.json`.
 
-### Concrete walkthrough
-
-You have `myorg/cool-app` and you want Agent OS in it.
-
-**Once, on any machine:**
-```bash
-cd ~/cool-app
-# Paste the install prompt above into your AI. AI runs the autonomous installer.
-# Files get added to ~/cool-app, committed, pushed.
+```
+                                 install ONCE                    clone forever
+   ┌──────────────────────┐     ───────────►       ┌──────────────────────┐
+   │  YOU on Device A     │                         │  YOU (or AI) on B    │
+   │  Project: cool-app   │ ──── git push ────►     │  git clone cool-app  │
+   │  + Agent OS files    │                         │  AGENTS.md is here   │
+   │    committed inside  │                         │  hooks are here      │
+   └──────────────────────┘                         └──────────────────────┘
+                                                          ▲
+                                                          │ never visits
+                                                          │ agent-os repo
+                                                          ▼
+                            ┌──────────────────────┐
+                            │  munsanco13/agent-os │  ◄── only consulted ONCE,
+                            │  (this repo)         │      at install time
+                            └──────────────────────┘
 ```
 
-**Forever after, on any other machine:**
-```bash
-git clone https://github.com/myorg/cool-app
-cd cool-app
-# AGENTS.md, .githooks/, .github/workflows/ — all already here.
-# The other machine never visits agent-os. It just clones cool-app.
-```
+---
 
-That's the whole model. Agent OS is not a service or a runtime; it's a one-time install of files into your repo.
+## ⚡ Install (paste this into your AI)
+
+In your project's repo (any tech stack, Mac/Linux/WSL), paste this **single message** into Claude Code, Codex, Cursor, Cline, Aider, or any AI coding assistant with shell access:
+
+> Install Agent OS in this repo. The instructions are at https://github.com/munsanco13/agent-os — read the README, then run the autonomous installer. Use my existing `gh` CLI authentication (run `gh auth status` first to confirm). The installer auto-detects my tech stack, drops template files, opens an install PR, configures GitHub branch protection via the API, and validates. No setup needed from me. Report when done.
+
+**The AI handles everything.** Total time: **2-5 minutes**.
+
+> 💡 **No PAT setup needed** — the installer uses your existing `gh auth login`. If you've ever pushed to GitHub from your machine, you're already set up.
+
+For the manual install path (no AI handy), or for a deep walkthrough, see [`INSTALL.md`](INSTALL.md).
 
 ---
 
@@ -56,191 +124,205 @@ After install, your repo (e.g. `cool-app/`) gets these new files:
 
 ```
 cool-app/
-├── AGENTS.md                                   # universal AI contract every agent reads first
-├── SECURITY.md                                 # threat model + hard rules
-├── HANDOFF.md                                  # rolling status snapshot (you maintain it)
-├── CLAUDE.md → AGENTS.md                       # symlink so Claude Code finds the same rules
-├── .cursorrules → AGENTS.md                    # symlink for Cursor
-├── .clinerules → AGENTS.md                     # symlink for Cline
-├── .continuerules → AGENTS.md                  # symlink for Continue.dev
-├── CONVENTIONS.md → AGENTS.md                  # symlink for Aider
-├── .gitleaks.toml                              # gitleaks config (extends upstream + project-specific)
-├── .gitattributes                              # line-ending normalization (cross-platform)
-├── .agent-os-version                           # records what version is installed
+├── AGENTS.md                                 # universal AI contract every agent reads first
+├── SECURITY.md                               # threat model + hard rules
+├── HANDOFF.md                                # rolling status snapshot
+├── CLAUDE.md → AGENTS.md                     # symlink: Claude Code finds the rules
+├── .cursorrules → AGENTS.md                  # symlink: Cursor
+├── .clinerules → AGENTS.md                   # symlink: Cline
+├── .continuerules → AGENTS.md                # symlink: Continue.dev
+├── CONVENTIONS.md → AGENTS.md                # symlink: Aider
+├── .gitleaks.toml                            # gitleaks config
+├── .gitattributes                            # cross-platform line endings
+├── .agent-os-version                         # records installed version
 │
 ├── docs/
-│   ├── sessions/                               # per-session work logs (chronological)
-│   └── decisions/                              # ADRs (architecture decision records)
+│   ├── sessions/                             # per-session work logs
+│   └── decisions/                            # ADRs (architecture records)
 │
 ├── .githooks/
-│   ├── pre-commit                              # gitleaks scan + filename + size + main-branch refusal
-│   ├── commit-msg                              # Conventional Commits enforcement
-│   └── pre-push                                # final gate: force-push refusal + range scan
+│   ├── pre-commit                            # gitleaks + filename + size + main-branch refusal
+│   ├── commit-msg                            # Conventional Commits
+│   └── pre-push                              # force-push refusal + range scan
 │
 ├── .github/
-│   ├── workflows/
-│   │   ├── security.yml                        # secret-scan, large-files, no-direct-pushes, hooks-integrity, placeholder-lint
-│   │   ├── pr-checks.yml                       # pr-title, pr-body
-│   │   ├── branch-protection-audit.yml         # weekly audit; opens issue if main is unprotected
-│   │   └── hook-tests.yml                      # bats test suite for the hooks
-│   ├── CODEOWNERS                              # required reviewers for security-critical paths
-│   ├── pull_request_template.md                # forces Summary + Test plan + Security checklist
-│   ├── dependabot.yml                          # weekly dependency security updates
-│   └── SECURITY.md                             # vulnerability disclosure policy
+│   ├── workflows/  (4 workflows)             # secret-scan, pr-checks, branch-protection-audit, hook-tests
+│   ├── CODEOWNERS                            # required reviewers
+│   ├── pull_request_template.md              # forces Summary + Test plan
+│   ├── dependabot.yml                        # weekly dep updates
+│   └── SECURITY.md                           # vulnerability disclosure
 │
 └── scripts/
-    ├── agent-os-validate.sh                    # check install integrity
-    ├── agent-os-update.sh                      # pull newer template version
-    └── agent-os-uninstall.sh                   # reverse install (interactive)
+    ├── agent-os-validate.sh                  # check install integrity
+    ├── agent-os-update.sh                    # pull newer template
+    └── agent-os-uninstall.sh                 # reverse install
 ```
 
 (All paths above are inside YOUR project, not inside agent-os.)
 
 ---
 
-## Defense layers (what actually keeps you safe)
+## How Agent OS compares
 
-| Layer | What it does | Bypass cost |
-|---|---|---|
-| 1. `AGENTS.md` | Tells every AI the rules | AI ignores → caught at next layer |
-| 2. `.gitignore` | Stops accidental staging | Trivial — but unlikely accidentally |
-| 3. `pre-commit` hook (local) | Fast feedback on secrets/size/main-branch | Can be skipped with `--no-verify`, **but CI re-runs everything** |
-| 4. `commit-msg` hook (local) | Conventional Commits | Same as above |
-| 5. `pre-push` hook (local) | Force-push refusal + full-range gitleaks scan | Same |
-| 6. **`.github/workflows/security.yml` (server)** | The authoritative gate. gitleaks + size + branch checks on every push and PR. | **No bypass without admin override (logged)** |
-| 7. Branch protection (manual setup) | GitHub refuses direct pushes / unmerged PRs | Admin override only |
-| 8. CODEOWNERS | Required reviewer for `AGENTS.md`, `SECURITY.md`, `.gitleaks.toml`, `.githooks/`, `.github/workflows/` | Cannot bypass once branch protection requires owner review |
-| 9. `branch-protection-audit` (weekly) | Catches drift if protection is silently disabled | Maintainer is notified within 7 days |
-| 10. Dependabot | Weekly dependency security PRs | None — automated |
+We benchmarked against the 5 most relevant peer tools in the multi-AI workflow space. Here's the honest scorecard:
 
-The critical insight: **the local hooks are advisory. The CI workflow + branch protection are authoritative.** A motivated attacker bypassing local hooks just delays the failure to the PR check.
+| Capability | [any-llm](https://github.com/mozilla-ai/any-llm) | [CCB](https://github.com/bfly123/claude_codex_bridge) | [ccode-to-codex](https://github.com/zuharz/ccode-to-codex) | [palot](https://github.com/itswendell/palot) | [agents-md-vsc](https://github.com/kamilio/agents-md-vscode-extension) | **Agent OS** |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| Multi-AI filename aliases | ❌ | ❌ | ❌ | ❌ | 1 | **5** |
+| Legacy config import | ❌ | ❌ | partial | ❌ | ❌ | **✅** |
+| Server-side CI enforcement | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Stack auto-detection (10+ stacks) | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Cross-platform Mac↔Windows | partial | partial | ❌ | ✅ | ✅ | **✅** |
+| Autonomous install via API | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| ADRs + sessions log | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Threat-modeled SECURITY.md | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Branch protection automation | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Parallel agent runtime | ❌ | **✅** | ❌ | ❌ | ❌ | n/a (use CCB) |
+| Desktop GUI | ❌ | ❌ | ❌ | **✅** | ❌ | n/a (use palot) |
+| LLM provider SDK | **✅** | ❌ | ❌ | ❌ | ❌ | n/a (use any-llm) |
+
+**Agent OS owns 9 of 12 capability dimensions.** The 3 we don't own are deliberately out of scope (parallel runtime, GUI, SDK) — and the [PLAYBOOK](PLAYBOOK.md) explicitly recommends those tools when you need them. **Agent OS is the base layer the others sit on top of.**
 
 ---
 
-## Install
+## Why now
 
-### One-liner (pinned, recommended)
+In 2026, three things happened simultaneously:
 
-From inside the project you want to add this to:
+1. **AI assistants multiplied.** Claude Code, Codex, Cursor, Cline, Aider, Continue.dev, Cody, Tabnine — most devs use 2+. None of them read each other's config formats by default.
+2. **Token costs collapsed.** Every project now uses AI assistants for real work, not just demos. The cost of a leaked secret skyrocketed — supply-chain attacks now scrape every public repo within minutes of a push.
+3. **GitHub Actions matured to the point** where you can fully automate branch protection + secret scanning + PR validation server-side, eliminating the "I'll set it up later" trap.
+
+**Agent OS is the convergence: a single drop-in template that fixes multi-AI chaos AND modern security hygiene, in one install, free.**
+
+---
+
+## FAQ
+
+<details>
+<summary><b>Does this work with my tech stack?</b></summary>
+
+Almost certainly yes. The auto-detector covers **Node.js (Next.js, Vite, Remix, NestJS, Express, Fastify, SvelteKit, React)**, **Python (uv, Poetry, pip, pipenv)**, **Rust**, **Go**, **Ruby (Rails)**, **PHP (Laravel, Symfony)**, **Elixir (Phoenix)**, **Java (Maven, Gradle, Spring Boot)**, and **Deno**.
+
+If your stack isn't covered, the installer writes a `bootstrap.yaml` with `TODO` markers and the rest of the system works identically. Stack-agnostic by design.
+</details>
+
+<details>
+<summary><b>Do I need to install Agent OS on every device that uses my project?</b></summary>
+
+**No.** You install Agent OS into your project's repo **once, on any machine.** The files get committed. Every other device that clones your project gets Agent OS automatically — because the files are inside your repo. They never visit the agent-os repo.
+
+Think `npm install eslint --save-dev`. You install ESLint once, commit it, and every other dev who clones your project gets it for free.
+</details>
+
+<details>
+<summary><b>Is this safe to install in a private/work repo?</b></summary>
+
+Yes. The installer:
+- Never overwrites existing files
+- Refuses to run if you have a competing hook manager (Husky, lefthook, pre-commit) without explicit guidance
+- Drops files only — no telemetry, no network calls after install (other than fetching files from this public repo)
+- Source code is auditable; it's all bash + TOML + Markdown
+
+The whole template is MIT-licensed and ~3,000 lines of bash + YAML you can read in an hour.
+</details>
+
+<details>
+<summary><b>What if I already have a CLAUDE.md / AGENTS.md / .cursorrules?</b></summary>
+
+The installer skips files that already exist (never overwrites). To merge legacy single-tool configs into a unified `AGENTS.md`, run:
 
 ```bash
-AGENT_OS_REF=v2.0.0 bash <(curl -fsSL \
-  https://raw.githubusercontent.com/munsanco13/agent-os/v2.0.0/scripts/install.sh)
+bash scripts/agent-os-import.sh
 ```
 
-> **Why pinning matters:** running `main` means whatever's on HEAD right now executes on your machine. Pinning to a tagged release ensures auditability. After running, check the file `.agent-os-version` in your repo — it records the exact commit SHA that was installed.
+It backs up originals, merges them, and replaces with symlinks pointing at `AGENTS.md`. Audit log + reversible.
+</details>
 
-### Local clone install
+<details>
+<summary><b>Does the autonomous install work without a GitHub PAT?</b></summary>
+
+Yes. The installer resolves credentials in this order:
+1. `GH_PAT` env var
+2. `.credentials.local` file
+3. **Existing `gh auth token`** (most common — most devs have done `gh auth login`)
+4. None — install drops files only and prints manual branch-protection instructions
+
+If you've ever run `gh auth login`, you're set. No PAT setup needed.
+</details>
+
+<details>
+<summary><b>Can I uninstall it?</b></summary>
+
+Yes, interactively:
+```bash
+bash scripts/agent-os-uninstall.sh
+```
+
+Removes hooks, workflows, scripts, configs. Leaves your customized `AGENTS.md`, `SECURITY.md`, and `docs/` alone (those are yours now).
+</details>
+
+<details>
+<summary><b>Why is this free?</b></summary>
+
+Because **multi-AI workflow chaos is a real problem worth solving for everyone**, and the security baseline this enforces (no committed secrets, no force-push to main, no rogue branches) is so universally beneficial that gatekeeping it would be net-negative.
+
+Built by [@munsanco13](https://github.com/munsanco13). MIT license. PRs welcome. ⭐ if it helps.
+</details>
+
+<details>
+<summary><b>How do I update?</b></summary>
 
 ```bash
-git clone https://github.com/munsanco13/agent-os /tmp/agent-os
-cd /path/to/your/project
-bash /tmp/agent-os/.agent-template/scripts/install.sh .
+bash scripts/agent-os-update.sh           # latest tagged version
+bash scripts/agent-os-update.sh v2.4.0    # pin to a specific version
 ```
 
-### What the installer does
-
-1. Verifies the target is a git repo.
-2. **Detects competing hook managers** (Husky, lefthook, pre-commit) and refuses with guidance — never silently breaks an existing setup.
-3. Copies template files **without overwriting** any existing files.
-4. Wires `git config core.hooksPath = .githooks` (warns if already set elsewhere).
-5. Appends gitignore entries (deduplicated).
-6. Writes `.agent-os-version` with version + commit SHA + timestamp.
-7. Runs the placeholder validator and lists what's still `<<UNFILLED>>`.
-8. Checks gitleaks is installed; prints install instructions if not.
-9. Prints the manual branch-protection setup checklist.
-
-The installer is **idempotent** — run it again any time. Files that exist are never overwritten.
+Shows you the diff, applies on approval. Your `AGENTS.md` and `SECURITY.md` are user-owned post-install — the updater never touches them.
+</details>
 
 ---
 
-## Customize after install
+## Roadmap
 
-Open these and replace `<<PLACEHOLDER>>` tokens:
-
-- `AGENTS.md` → `<<PROJECT_NAME>>`, `<<STACK>>`, `<<DEPLOY_TARGET>>`, `<<DEV_COMMAND>>`, `<<TEST_COMMAND>>`, `<<LINT_COMMAND>>`, `<<INSTALL_COMMAND>>`
-- `.github/CODEOWNERS` → `<<GITHUB_USERNAME>>`
-- `.github/SECURITY.md` → `<<SECURITY_EMAIL>>`
-
-Run anytime to find what's left:
-
-```bash
-bash scripts/agent-os-validate.sh
-```
-
-The CI workflow `placeholder-lint` will fail any PR that ships unfilled tokens.
+- [x] **v2.0** — gitleaks + CI workflows + sessions log
+- [x] **v2.1** — bash 3.2 fix, JWT regex, squash-merge fix, cross-platform
+- [x] **v2.2** — autonomous install + stack auto-detection
+- [x] **v2.3** — multi-tool symlinks (Claude/Cursor/Cline/Continue/Aider) + legacy config import
+- [ ] **v2.4** — automated branch protection setup via API for non-PAT users (GitHub OIDC)
+- [ ] **v2.5** — visual install diagram + 90-second demo video
+- [ ] **v3.0** — cosign-signed releases + SLSA Level 3 provenance
+- [ ] **future** — project-type variants (Next.js / Python / Rust starters)
 
 ---
 
-## Required manual step: branch protection
+## Contributing
 
-The workflows enforce nothing unless GitHub branch protection requires their status checks. **You must configure this once in GitHub**:
+PRs welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md). All contributors must:
 
-Settings → Branches → Add branch protection rule → `main`:
+1. Sign commits with the project's git hooks active (`bash scripts/agent-os-validate.sh` to confirm)
+2. Open PRs against `main` (no direct pushes — the workflows enforce this on this repo too)
+3. Follow Conventional Commits for commit messages
+4. Pass all CI checks (the same ones the template installs)
 
-- ✅ Require a pull request before merging (1 approval)
-- ✅ Dismiss stale approvals when new commits are pushed
-- ✅ Require review from Code Owners
-- ✅ Require status checks to pass:
-  - `secret-scan`
-  - `large-files`
-  - `no-direct-pushes`
-  - `hooks-integrity`
-  - `placeholder-lint`
-  - `pr-title`
-  - `pr-body`
-- ✅ Require branches to be up to date before merging
-- ✅ Require conversation resolution before merging
-- ✅ Require linear history
-- ❌ Disallow force pushes
-- ❌ Disallow deletions
-
-`branch-protection-audit.yml` runs weekly and opens an issue if these rules drift.
+This repo eats its own dog food. Every commit goes through the gates Agent OS installs into other projects.
 
 ---
 
-## Validate / Update / Uninstall
+## License + Author
 
-```bash
-bash scripts/agent-os-validate.sh           # check install integrity
-bash scripts/agent-os-update.sh             # pull latest tagged version, show diff, apply
-bash scripts/agent-os-update.sh v2.1.0      # pin to a specific version
-bash scripts/agent-os-uninstall.sh          # reverse install (interactive)
-```
+[MIT License](LICENSE) · Built by [Mundo Sanchez](https://github.com/munsanco13)
 
----
+If Agent OS saves you time, **⭐ the repo** — it's the single highest-signal way to surface this for other devs.
 
-## Threat model
-
-See `SECURITY.md` for the full threat model. In short:
-
-**Defended:** accidental secret commits (developer or AI), force-push to main, direct commits to main, `--no-verify` bypass, large-file accidents, dependency vulnerabilities, branch-protection drift.
-
-**Not defended:** social engineering against maintainers, upstream supply-chain compromise, GitHub itself getting popped, malicious insiders with admin access. These require operational controls (2FA, hardware keys, minimum-permission principle) the template can't provide.
+For the full design rationale, threat model, and 60-page deep dive: [`PLAYBOOK.md`](PLAYBOOK.md).
 
 ---
 
-## Why not a CLI / npm package / cargo crate?
+<div align="center">
 
-Because:
-1. Markdown files don't need a runtime.
-2. AI agents read flat markdown reliably; they read wrapper-tool output unreliably.
-3. Forking is the simplest extension model — copy, edit, ship. Updates flow via the `update.sh` diff workflow, not a dependency manager.
-4. Less surface area = fewer supply-chain attack vectors. There's no package to typosquat.
+**Stop losing your mind switching between AI tools. Install once, hand off forever.**
 
----
+[**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 
-## Contributing back
-
-If you improve the template in your project, copy the improvement back into `agent-os` repo and open a PR. The `update.sh` script will distribute it to other projects on their next update.
-
----
-
-## Releases
-
-Tagged versions live at https://github.com/munsanco13/agent-os/tags. Use those refs (e.g. `AGENT_OS_REF=v2.0.0`) for deterministic installs.
-
-| Version | Highlights |
-|---|---|
-| 2.0.0 | gitleaks integration; CI workflows are authoritative; sessions log replaces single HANDOFF.md; commit-msg + pre-push hooks; bats test suite; CODEOWNERS, PR template, dependabot, vulnerability disclosure; idempotent install + validate + update + uninstall scripts; weekly branch-protection audit |
-| 1.0.0 | Initial: AGENTS.md, HANDOFF.md, SECURITY.md, ADR scaffold, regex-based pre-commit hook |
+</div>
