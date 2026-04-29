@@ -18,27 +18,59 @@ For more detail (or if you don't have an AI handy and want to install manually),
 
 ---
 
-## What's in the box
+## How this works (read this if you're confused)
+
+**Agent OS works exactly like installing a dev dependency** — think `npm install eslint --save-dev` or `pip install -r requirements.txt`.
+
+1. **You install Agent OS ONCE into YOUR project's repo.** The installer drops files into your project's working tree: `AGENTS.md`, `.githooks/`, `.github/workflows/`, `docs/decisions/`, etc.
+2. **Those files get committed and pushed.** They are now part of your project's git history.
+3. **Anyone (or any AI) who clones your project gets them automatically** — the files are inside your repo. They never visit `github.com/munsanco13/agent-os`.
+4. **After install, the agent-os repo is invisible to you.** You don't keep visiting it. You don't reference it daily. Your project owns those files now, just like ESLint becomes part of your project once it's in `package.json`.
+
+### Concrete walkthrough
+
+You have `myorg/cool-app` and you want Agent OS in it.
+
+**Once, on any machine:**
+```bash
+cd ~/cool-app
+# Paste the install prompt above into your AI. AI runs the autonomous installer.
+# Files get added to ~/cool-app, committed, pushed.
+```
+
+**Forever after, on any other machine:**
+```bash
+git clone https://github.com/myorg/cool-app
+cd cool-app
+# AGENTS.md, .githooks/, .github/workflows/ — all already here.
+# The other machine never visits agent-os. It just clones cool-app.
+```
+
+That's the whole model. Agent OS is not a service or a runtime; it's a one-time install of files into your repo.
+
+---
+
+## What gets dropped into your project
+
+After install, your repo (e.g. `cool-app/`) gets these new files:
 
 ```
-.agent-template/
-├── README.md                                   # this file
-├── VERSION                                     # 2.0.0
+cool-app/
 ├── AGENTS.md                                   # universal AI contract every agent reads first
 ├── SECURITY.md                                 # threat model + hard rules
+├── HANDOFF.md                                  # rolling status snapshot (you maintain it)
+├── CLAUDE.md → AGENTS.md                       # symlink so Claude Code finds the same rules
+├── .cursorrules → AGENTS.md                    # symlink for Cursor
+├── .clinerules → AGENTS.md                     # symlink for Cline
+├── .continuerules → AGENTS.md                  # symlink for Continue.dev
+├── CONVENTIONS.md → AGENTS.md                  # symlink for Aider
 ├── .gitleaks.toml                              # gitleaks config (extends upstream + project-specific)
-├── .gitignore-additions                        # appended to your existing .gitignore
+├── .gitattributes                              # line-ending normalization (cross-platform)
+├── .agent-os-version                           # records what version is installed
 │
 ├── docs/
-│   ├── sessions/
-│   │   ├── README.md                           # how the per-session log works
-│   │   └── _template.md                        # template for new session entries
-│   └── decisions/
-│       ├── README.md                           # ADR index
-│       ├── 0000-template.md
-│       ├── 0001-multi-ai-continuity.md
-│       ├── 0002-secret-scanning-with-gitleaks.md
-│       └── 0003-server-side-enforcement.md
+│   ├── sessions/                               # per-session work logs (chronological)
+│   └── decisions/                              # ADRs (architecture decision records)
 │
 ├── .githooks/
 │   ├── pre-commit                              # gitleaks scan + filename + size + main-branch refusal
@@ -56,15 +88,13 @@ For more detail (or if you don't have an AI handy and want to install manually),
 │   ├── dependabot.yml                          # weekly dependency security updates
 │   └── SECURITY.md                             # vulnerability disclosure policy
 │
-├── scripts/
-│   ├── install.sh                              # idempotent installer
-│   ├── validate.sh                             # checks installation integrity
-│   ├── update.sh                               # pulls newer template, shows diff, applies
-│   └── uninstall.sh                            # reverses the install
-│
-└── tests/
-    └── pre-commit.bats                         # bats tests for the pre-commit hook
+└── scripts/
+    ├── agent-os-validate.sh                    # check install integrity
+    ├── agent-os-update.sh                      # pull newer template version
+    └── agent-os-uninstall.sh                   # reverse install (interactive)
 ```
+
+(All paths above are inside YOUR project, not inside agent-os.)
 
 ---
 
