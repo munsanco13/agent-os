@@ -4,9 +4,9 @@
 
 # Agent OS
 
-### **Hit your Claude Code usage limit? Keep building in Codex without losing your place.**
+### **Hit your AI usage limit? Keep building in another tool — without losing your place.**
 
-**The drop-in template that lets you switch between AI coding tools mid-project — when one hits its cap, the next one picks up exactly where you left off in under 2 minutes.**
+**Drop-in template for switching between any AI coding tools mid-project. When one hits its cap, fails, or just isn't the right fit for the task, the next one picks up exactly where you left off in under 2 minutes. Works across Claude Code, Codex, Cursor, Cline, Aider, Continue.dev, and any AI tool that reads markdown.**
 
 [![Version](https://img.shields.io/github/v/tag/munsanco13/agent-os?label=version&color=2563eb)](https://github.com/munsanco13/agent-os/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -16,7 +16,7 @@
 
 [**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 &nbsp;·&nbsp;
-[**The pain this solves**](#the-real-problem-you-hit-the-cap-mid-project)
+[**The pain this solves**](#the-real-problem-every-ai-tool-has-a-wall-and-switching-means-losing-your-place)
 &nbsp;·&nbsp;
 [**See it vs alternatives**](#how-agent-os-compares)
 &nbsp;·&nbsp;
@@ -26,49 +26,52 @@
 
 ---
 
-## The real problem: you hit the cap mid-project
+## The real problem: every AI tool has a wall, and switching means losing your place
 
-You're 6 hours deep into a hard problem in **Claude Code**. The model is dialed in — it knows your codebase, it's nailed the bug pattern, you're 30 minutes from shipping the fix.
+You're deep in a hard problem with your favorite AI coding tool. The model is dialed in — it knows your codebase, it's nailed the bug pattern, you're 30 minutes from shipping the fix.
 
-Then this happens:
+Then one of these things happens:
 
-> *"You've reached your weekly usage limit. Resets in 3 days."*
+- 🛑 **"You've reached your usage limit"** — and the reset is days away
+- 🤷 **The model is just wrong** for this task — you need a different one (different reasoning style, different context window, different strengths)
+- 💻 **You change machines** — work laptop, second device, different OS, you've got a different AI installed there
+- 👥 **Someone else picks it up** — a teammate, a contractor, future-you in three months
 
-Now you're stuck. **Three options, all bad:**
+Whichever wall you hit, you have **three bad options:**
 
-### ❌ Option 1 — Wait 3 days
-You lose your flow state. You forget what you were doing. The deadline slips. You feel like the tool failed you.
+### ❌ Option 1 — Stop and wait
+Lose your flow state. Forget what you were doing. The deadline slips.
 
-### ❌ Option 2 — Switch on the API
-Pay per token. With modern agentic tooling spawning sub-agents and burning context, a single serious dev day can cost **hundreds of dollars** in API charges. Heavy use = four-figure monthly bills routinely. The whole reason you used the subscription was to avoid this.
+### ❌ Option 2 — Switch to the metered API
+Pay per token. Modern agentic tooling spawning sub-agents burns through context fast — a single serious dev day can cost **hundreds of dollars** in API charges. The whole reason you used the subscription was to avoid this.
 
-### ❌ Option 3 — Switch to Codex (or another AI), but cold
-Codex's caps are more generous. So is Cursor's. But when you open a new tool, it knows nothing about your project, your conventions, what you were just trying to do. You spend **30 minutes re-onboarding it** before any work happens — pasting context, re-explaining the bug, re-establishing rules. By the time the new AI is up to speed, your flow is dead.
+### ❌ Option 3 — Switch to a different AI tool, but cold
+You open the next tool (Codex, Cursor, Cline, Aider, whatever you have access to). It knows nothing about your project, your conventions, what you were just trying to do. You spend **30 minutes re-onboarding it** — pasting context, re-explaining the bug, re-establishing rules. By the time the new AI is up to speed, your flow is dead.
 
 ### ✅ The fourth option (with Agent OS): switch in under 2 minutes
 
-Your project has `AGENTS.md` and a `docs/sessions/` log. You commit your in-progress work, push, and tell Codex (or Cursor, or whatever's still under cap):
+Your project has `AGENTS.md` and a `docs/sessions/` log committed. You push your work-in-progress and tell the next tool (any tool — Claude Code, Codex, Cursor, Cline, Aider, Continue.dev, doesn't matter):
 
 > *"Pick up work on https://github.com/me/myproject. Read AGENTS.md and the latest session log to bootstrap."*
 
-Codex reads the files, sees exactly where Claude left off, what's pending, what to watch out for, and what the project's conventions are. **It's productive in 2 minutes**, not 30. You finish shipping the fix.
+The new tool reads the files, sees exactly where the previous AI left off, what's pending, what to watch out for, what the project's conventions are. **It's productive in 2 minutes**, not 30. You finish shipping.
 
-**Three days later your Claude Code cap resets.** You go back. Claude Code reads the same `AGENTS.md` + session log Codex was using. Continues from there.
+When you switch back later (cap reset, different machine, different teammate, different model that's better for the next task), the new tool reads the same files and is just as oriented. **The handoff is bidirectional and tool-agnostic.**
 
-**This is what Agent OS is for: when one AI tool hits its cap or fails you, the next one keeps your project moving without losing momentum.**
+**This is what Agent OS is for: when one AI tool hits any wall — usage cap, wrong model for the task, machine switch, contributor handoff — the next one keeps your project moving without losing momentum.**
 
 ---
 
-### Real-world AI tool caps (as of 2026)
+### Why this happens to every AI tool
 
-| Tool | Cap behavior | Best fallback role |
-|---|---|---|
-| **Claude Code (Pro / Max)** | Weekly usage limits; even Max users hit them on heavy weeks | Where you start |
-| **Codex Desktop (ChatGPT Plus / Pro)** | More generous caps; rarer to hit | Primary fallback when Claude maxes out |
-| **Cursor (Pro / Business)** | Multi-model access; check current limits | Optional third tool / specific tasks |
-| **The API (any vendor)** | No cap, but **hundreds of dollars per dev day** | Emergency only |
+Every flat-rate AI subscription product has caps. The exact limits and who hits them vary:
 
-The exact limits vary by subscription tier and shift over time as vendors tune them. The pattern doesn't change: **every flat-rate tool has a cap. Without a way to switch tools without losing state, hitting the cap = losing the day.** Agent OS solves that.
+- **Claude Code** (Pro / Max) — weekly usage caps; heavy users (especially Pro) hit them routinely
+- **Codex** (ChatGPT Plus / Pro) — usage caps too, often more generous in practice
+- **Cursor** (Pro / Business) — has its own usage envelopes depending on the model
+- **Cline / Aider / Continue.dev / Cody** — many bring-your-own-key but you can mix subscription + API
+
+Caps shift over time as vendors tune pricing. Pinning to a specific "Claude Code → Codex" handoff would be wrong — **the value is being able to switch in any direction, between any pair, whenever a wall hits.** Pick whichever AI you have runway on, point it at your repo, and keep going.
 
 ---
 
@@ -140,18 +143,18 @@ For the manual install path (no AI handy), or for a deep walkthrough, see [`INST
 
 ## What you get
 
-### 1. Cap-hit recovery (the headline)
+### 1. Tool-agnostic handoffs (the headline)
 
-When Claude Code says "weekly limit reached, reset in 3 days," Agent OS lets you:
+When ANY AI tool hits a wall — usage cap, wrong-model-for-the-task, machine switch, teammate handoff — Agent OS lets you:
 
 1. Commit your work-in-progress (push)
-2. Open Codex (or Cursor, or whichever subscription tool still has runway)
+2. Open whichever AI tool you want next (Claude Code, Codex, Cursor, Cline, Aider, Continue.dev, GPT-5.5, etc.)
 3. Tell it: *"Pick up the project. Read AGENTS.md and the latest session log."*
 4. Productive in **~2 minutes**, not 30
 
-**Your project doesn't stall when one AI tool hits its cap.** You just keep building in the next tool. When the cap resets, you switch back. Same `AGENTS.md` + same session log = both AIs always in sync.
+**Your project doesn't stall when one tool fails you.** You keep building in the next tool. When the original is available again, you switch back. Same `AGENTS.md` + same session log = every AI always in sync.
 
-This works for any combination — Claude Code → Codex, Codex → Cursor, Cursor → Claude Code, etc. The handoff protocol is tool-agnostic.
+This works for **any combination, in any direction**: Claude Code ↔ Codex, Codex ↔ Cursor, Cursor ↔ Cline, Aider → Codex, etc. The handoff protocol doesn't care which tools you use.
 
 ### 2. Multi-AI continuity (what you actually use day-to-day)
 
@@ -214,11 +217,11 @@ We benchmarked against the 5 most relevant peer tools. Each solves a different s
 <details>
 <summary><b>What problem does Agent OS actually solve?</b></summary>
 
-**The "I hit the cap" problem.** You're deep in Claude Code on a hard problem and Claude says "weekly limit reached, reset in 3 days." Without Agent OS, you're stuck — wait three days, switch to the metered API and pay hundreds of dollars per day, or lose 30 minutes re-onboarding a different AI tool.
+**The "I hit a wall and now I'm stuck" problem.** Whether the wall is a usage cap (Claude Code says "weekly limit reached"), a wrong-model-for-the-task moment, a machine switch, or a teammate handoff — without Agent OS, the next AI tool you open knows nothing about your project. You lose 30 minutes re-onboarding it.
 
-With Agent OS, your project has `AGENTS.md` + a session log committed to the repo. The next AI tool (Codex, Cursor, whatever has runway left) reads those files and is productive in ~2 minutes. You keep building.
+With Agent OS, your project has `AGENTS.md` + a session log committed to the repo. **Any** AI tool (Claude Code, Codex, Cursor, Cline, Aider, Continue.dev, GPT-5.5 — doesn't matter) reads those files and is productive in ~2 minutes. The handoff is tool-agnostic and bidirectional.
 
-The security/hygiene features (gitleaks, branch protection, hooks) ship by default and are real — but they're a side benefit. The headline is "when one AI tool maxes you out, the next one picks up where it left off."
+The security/hygiene features (gitleaks, branch protection, hooks) ship by default and are real — but they're a side benefit. The headline is "when one AI tool fails you for any reason, the next one picks up where it left off."
 </details>
 
 <details>
@@ -344,7 +347,7 @@ This repo eats its own dog food — every commit goes through the gates Agent OS
 
 [MIT License](LICENSE) · Built by [Mundo Sanchez](https://github.com/munsanco13)
 
-If Agent OS keeps your project moving when an AI tool hits its cap, **⭐ the repo**.
+If Agent OS keeps your project moving when one AI tool fails you, **⭐ the repo**.
 
 For the full design rationale, threat model, and deep dive: [`PLAYBOOK.md`](PLAYBOOK.md).
 
@@ -352,7 +355,7 @@ For the full design rationale, threat model, and deep dive: [`PLAYBOOK.md`](PLAY
 
 <div align="center">
 
-**Hit the cap? Don't lose the day. Switch tools, keep building.**
+**Hit a wall? Don't lose the day. Switch AI tools, keep building.**
 
 [**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 
