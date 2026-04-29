@@ -200,7 +200,9 @@ link_alias "CONVENTIONS.md" "AGENTS.md"   # Aider
 copy_if_absent "$SOURCE/.github/workflows/security.yml"                "$([[ -d .github/workflows ]] && echo .github/workflows/security.yml || echo .github/workflows/security.yml)"
 copy_if_absent "$SOURCE/.github/workflows/pr-checks.yml"               ".github/workflows/pr-checks.yml"
 copy_if_absent "$SOURCE/.github/workflows/branch-protection-audit.yml" ".github/workflows/branch-protection-audit.yml"
-copy_if_absent "$SOURCE/.github/workflows/hook-tests.yml"              ".github/workflows/hook-tests.yml"
+# NOTE: hook-tests.yml is intentionally NOT copied. It runs the bats test
+# suite that exists in the agent-os source repo itself; installed projects
+# don't ship a tests/ directory, so the workflow would fail in CI.
 copy_if_absent "$SOURCE/.github/CODEOWNERS"                            ".github/CODEOWNERS"
 copy_if_absent "$SOURCE/.github/pull_request_template.md"              ".github/pull_request_template.md"
 copy_if_absent "$SOURCE/.github/dependabot.yml"                        ".github/dependabot.yml"

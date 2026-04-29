@@ -131,11 +131,7 @@ jobs:
             "https://api.github.com/repos/$REPO/commits/$SHA/pulls" || echo "[]")
 
           # Count merged PRs that targeted main/master
-          merged_count=$(echo "$response" | python3 -c '
-import json, sys
-data = json.load(sys.stdin)
-print(sum(1 for p in data if p.get("merged_at") and p.get("base", {}).get("ref") in ("main", "master")))
-          ')
+          merged_count=$(echo "$response" | python3 -c 'import json, sys; data=json.load(sys.stdin); print(sum(1 for p in data if p.get("merged_at") and p.get("base", {}).get("ref") in ("main", "master")))')
 
           if [[ "$merged_count" -ge 1 ]]; then
             echo "✅ Push corresponds to a merged PR."
