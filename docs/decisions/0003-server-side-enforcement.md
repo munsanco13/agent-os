@@ -24,7 +24,7 @@ All security-critical checks run on the server via GitHub Actions. The local hoo
 2. `large-files` — refuses files >5 MB.
 3. `no-direct-pushes` — pushes to `main` must be merge commits from PRs.
 4. `hooks-integrity` — confirms `.githooks/pre-commit` exists and is executable in the tree.
-5. `placeholder-lint` — refuses `<<PLACEHOLDER>>` tokens leaking into shipped docs.
+5. `placeholder-lint` — refuses unfilled angle-bracket tokens (the kind the bootstrap installer leaves behind) from leaking into shipped docs.
 
 **PR quality jobs** (in `.github/workflows/pr-checks.yml`):
 6. `pr-title` — Conventional Commits format.
