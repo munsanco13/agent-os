@@ -178,7 +178,7 @@ elif [[ -d /tmp/agent-os-template/.agent-template ]]; then
   template_dir="/tmp/agent-os-template/.agent-template"
 else
   blue "→ Cloning template into /tmp/agent-os-template"
-  git clone --depth 1 --branch v2.3.0 \
+  git clone --depth 1 --branch v2.3.1 \
     https://github.com/munsanco13/agent-os /tmp/agent-os-template 2>&1 | tail -3
   template_dir="/tmp/agent-os-template"
 fi

@@ -30,7 +30,7 @@ That's it. Your AI handles everything.
 1. AI clones / reads the Agent OS repo
 2. AI runs the autonomous installer in your project:
    ```bash
-   bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/autonomous-install.sh)
+   bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.1/scripts/autonomous-install.sh)
    ```
 3. Installer auto-detects your stack (Node / Python / Rust / Go / Ruby / PHP / Elixir / Java / Deno + frameworks like Next.js, Rails, Laravel, Phoenix, Spring Boot)
 4. Drops in: `AGENTS.md`, `SECURITY.md`, git hooks, GitHub Actions workflows, ADR scaffold, sessions log
