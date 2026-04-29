@@ -1,0 +1,46 @@
+# Runs the bats test suite for the pre-commit hook on every push touching it.
+# This is what guarantees the hook actually catches what we think it catches.
+
+name: hook-tests
+
+on:
+  push:
+    paths:
+      - ".githooks/**"
+      - "tests/**"
+      - ".github/workflows/hook-tests.yml"
+  pull_request:
+    paths:
+      - ".githooks/**"
+      - "tests/**"
+      - ".github/workflows/hook-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  bats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Install bats
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y bats
+
+      - name: Install gitleaks
+        env:
+          # Pin to an exact release. Bump deliberately via Dependabot or PR;
+          # do not use `latest/download/` — the filename has the version baked in
+          # and 404s the moment a new release ships.
+          GITLEAKS_VERSION: 8.21.2
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSL "$url" | tar -xz
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+
+      - name: Run hook tests
+        run: bats tests/

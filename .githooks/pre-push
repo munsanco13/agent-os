@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Agent OS pre-push hook — last line of local defense before code leaves the laptop.
+#
+# Checks:
+#   1. Refuse force-push to main / master / trunk
+#   2. Refuse push to main / master / trunk that is not a fast-forward merge
+#   3. Run gitleaks on the entire range about to be pushed (full history catch)
+#
+# CI re-runs all of this on the server side. This is just a faster failure for the developer.
+
+set -euo pipefail
+
+red()    { printf '\033[0;31m%s\033[0m\n' "$*"; }
+green()  { printf '\033[0;32m%s\033[0m\n' "$*"; }
+
+remote="$1"
+url="$2"
+
+protected_re='^(main|master|trunk)$'
+
+# stdin format from git: <local-ref> <local-sha> <remote-ref> <remote-sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  remote_branch="${remote_ref#refs/heads/}"
+
+  if [[ "$remote_branch" =~ $protected_re ]]; then
+    # Forbid force-push to protected branches
+    if [[ "$remote_sha" != "0000000000000000000000000000000000000000" && "$local_sha" != "0000000000000000000000000000000000000000" ]]; then
+      if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+        red "❌ pre-push: refusing non-fast-forward push to '$remote_branch'."
+        echo "   That looks like a force-push or rewrite of shared history."
+        echo "   If you really need to do this, talk to a human first."
+        exit 1
+      fi
+    fi
+  fi
+
+  # Range scan with gitleaks. Hard-fail if missing — silent skipping
+  # gives a false sense of security. CI re-runs gitleaks anyway, but a
+  # missing local install means leaks travel as far as GitHub before being
+  # caught, where they're already public. Set AGENT_OS_SKIP_GITLEAKS=1 to
+  # bypass for the rare case you know what you're doing.
+  if ! command -v gitleaks >/dev/null 2>&1; then
+    if [[ "${AGENT_OS_SKIP_GITLEAKS:-0}" != "1" ]]; then
+      red "❌ pre-push: gitleaks not installed."
+      echo "   Install:  brew install gitleaks  |  https://github.com/gitleaks/gitleaks"
+      echo "   Bypass:   AGENT_OS_SKIP_GITLEAKS=1 git push  (only if you know what you're doing)"
+      exit 1
+    fi
+    yellow "⚠ AGENT_OS_SKIP_GITLEAKS=1 — local push proceeds without scan; CI will scan server-side."
+  else
+    if [[ "$remote_sha" != "0000000000000000000000000000000000000000" ]]; then
+      range="${remote_sha}..${local_sha}"
+    else
+      # New branch — scan everything reachable from the new ref but not on the default branch
+      default_branch=$(git symbolic-ref --short refs/remotes/"$remote"/HEAD 2>/dev/null | sed "s|^$remote/||" || echo "main")
+      range="$default_branch..$local_sha"
+    fi
+    config_arg=""
+    [[ -f .gitleaks.toml ]] && config_arg="--config .gitleaks.toml"
+    if ! gitleaks detect --no-banner --redact $config_arg --log-opts="--no-merges $range" >/dev/null 2>&1; then
+      red "❌ pre-push: gitleaks found a likely secret in the range about to be pushed."
+      echo "   Investigate with:  gitleaks detect --no-banner --log-opts='$range' -v"
+      echo "   Rotate any leaked credential at the vendor before unblocking."
+      exit 1
+    fi
+  fi
+done
+
+green "✓ pre-push checks passed"
+exit 0

@@ -1,0 +1,82 @@
+# Agent OS bootstrap config — fill once, AI does the rest.
+#
+# Copy this file to bootstrap.yaml in your project root, fill in the values,
+# then hand it (plus .credentials.local) to any AI agent and tell it:
+#
+#   "Run bash scripts/agent-os-autonomous-install.sh"
+#
+# The agent will:
+#  1. Install Agent OS template files into the project
+#  2. Substitute every placeholder using values from this file
+#  3. Wire git hooks, commit, push, open + auto-merge an install PR
+#  4. Configure GitHub branch protection via the GH_PAT in .credentials.local
+#  5. (Optional) Set up Vercel project + env vars if VERCEL_TOKEN is provided
+#  6. Run validate.sh to confirm everything's green
+#
+# Total user interaction after filling this file: zero.
+
+# --- Project identity ---
+project:
+  name: "My App"
+  description: "Short description of what this project does"
+  github_owner: "your-github-username"  # GitHub org or username
+  github_repo:  "your-repo-name"        # repo name on GitHub
+  main_branch:  "main"                  # usually `main`; some legacy repos use `master`
+
+# --- Tech stack ---
+# If unsure, run `bash scripts/detect-stack.sh` to auto-detect.
+stack:
+  description: "Next.js + Supabase + Vercel"   # human-readable label
+  install_command: "pnpm install"
+  dev_command:     "pnpm dev"
+  test_command:    "pnpm test"
+  lint_command:    "pnpm lint"
+
+# --- Deploy target ---
+deploy:
+  provider: "vercel"                   # vercel | fly | railway | netlify | none
+  vercel_team:    "your-team-slug"     # only if provider=vercel
+  vercel_project: "your-project-name"  # only if provider=vercel
+  production_branch: "main"
+
+# --- Maintainer ---
+maintainer:
+  name:   "Your Name"
+  email:  "you@example.com"            # used in .github/SECURITY.md
+  github: "@your-github-username"      # used in CODEOWNERS
+
+# --- Environment variables ---
+# List the runtime env vars the project needs. The autonomous installer can
+# (a) prompt for the values one time at install, OR (b) read them from the
+# user's existing local .env.local if present, OR (c) skip and document them
+# as needed.
+#
+# Mark sensitivity:
+#   public:    safe in client bundles (NEXT_PUBLIC_*) — Production+Preview+Development
+#   sensitive: server-only secrets — Production+Preview, encrypted at rest
+env_vars:
+  - name: NEXT_PUBLIC_API_URL
+    sensitivity: public
+  - name: DATABASE_URL
+    sensitivity: sensitive
+  - name: STRIPE_SECRET_KEY
+    sensitivity: sensitive
+
+# --- Branch protection rules ---
+# These get pushed to GitHub via `gh api` during install.
+# Override only if you have specific reasons; defaults match the playbook.
+branch_protection:
+  required_reviews: 1
+  require_codeowner_review: true
+  require_status_checks:
+    - secret-scan
+    - large-files
+    - no-direct-pushes
+    - hooks-integrity
+    - placeholder-lint
+    - pr-title
+    - pr-body
+  require_linear_history: true
+  allow_force_pushes: false
+  allow_deletions: false
+  enforce_admins: false                 # set true if you want zero exceptions

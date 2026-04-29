@@ -1,0 +1,53 @@
+# --- Agent OS additions (multi-AI workflow) ---
+
+# Environment files (secrets — NEVER commit)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+.env.development
+
+# Vercel CLI artifacts
+.vercel
+.vercel.bak
+.vercel.bak/
+
+# Common credential filenames
+credentials.json
+service-account*.json
+*service_account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+.netrc
+.pgpass
+secrets.yaml
+secrets.yml
+secrets.json
+secrets.toml
+
+# IDE / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*.local
+*.swp
+*.swo
+
+# AI agent local state (do not commit — contains transient context)
+.claude/plans/
+.claude/cache/
+.cursor/cache/
+.aider*
+
+# Code-review-graph (local index, can be huge)
+.code-review-graph/
+
+# gitleaks output
+gitleaks-report.json
+
+# Agent OS bootstrap credentials (NEVER commit)
+.credentials.local
+bootstrap.local.yaml

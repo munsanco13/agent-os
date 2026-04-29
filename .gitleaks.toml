@@ -1,0 +1,119 @@
+# gitleaks config for Agent OS — extends the upstream defaults.
+# Reference: https://github.com/gitleaks/gitleaks
+#
+# Why we extend instead of replace:
+# - Upstream covers ~150 secret patterns maintained by the gitleaks team.
+# - We add patterns specific to our stack (Anthropic, OpenAI, Supabase JWTs,
+#   Clerk, Intuit, etc.) and tighten allowlist to match how this project ships.
+
+title = "Agent OS"
+
+# Inherit all of gitleaks' built-in rules.
+[extend]
+useDefault = true
+
+# --- Additional rules ---
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic Claude API key"
+regex = '''sk-ant-(api03|admin01)-[A-Za-z0-9_-]{60,}'''
+keywords = ["sk-ant-"]
+tags = ["key", "Anthropic"]
+
+[[rules]]
+id = "openai-project-key"
+description = "OpenAI project / user API key"
+regex = '''sk-(proj|svcacct|admin|None)-[A-Za-z0-9_-]{40,}'''
+keywords = ["sk-proj-", "sk-svcacct-", "sk-admin-"]
+tags = ["key", "OpenAI"]
+
+[[rules]]
+id = "jwt-token"
+description = "JSON Web Token (any) — Supabase service_role keys, Auth0 tokens, etc."
+# Three base64url segments separated by dots; first segment starts with "eyJ"
+# (the base64 of `{"`). 100+ chars is an effective minimum for real signing JWTs;
+# this catches Supabase service_role, anon, and most vendor JWTs without a literal
+# "service_role" base64 trick (which depends on byte alignment and silently misses).
+regex = '''eyJ[A-Za-z0-9_=-]{10,}\.eyJ[A-Za-z0-9_=-]{40,}\.[A-Za-z0-9_=-]{20,}'''
+keywords = ["eyJ"]
+entropy = 4.0
+tags = ["jwt"]
+
+[[rules]]
+id = "clerk-secret-key"
+description = "Clerk secret key"
+regex = '''sk_(live|test)_[A-Za-z0-9]{40,}'''
+keywords = ["sk_live_", "sk_test_"]
+tags = ["key", "Clerk"]
+
+[[rules]]
+id = "intuit-oauth-secret"
+description = "Intuit / QuickBooks OAuth client secret"
+regex = '''(intuit|quickbooks|QBO)[_-]?(client[_-]?secret|secret)\s*[:=]\s*['"]?[A-Za-z0-9]{32,}['"]?'''
+keywords = ["intuit", "quickbooks"]
+tags = ["secret", "Intuit"]
+
+[[rules]]
+id = "postgres-connection-string"
+description = "Postgres connection string with embedded credentials"
+regex = '''postgres(ql)?://[^:\s]+:[^@\s]+@[^/\s]+/[^\s'"]+'''
+keywords = ["postgres://", "postgresql://"]
+tags = ["connection-string"]
+
+[[rules]]
+id = "generic-bearer-token"
+description = "Generic Bearer token in code or config"
+regex = '''(?i)(authorization|bearer)["'\s:=]+[A-Za-z0-9_\-\.]{32,}'''
+keywords = ["bearer", "Authorization"]
+tags = ["token"]
+
+[[rules]]
+id = "private-key-block"
+description = "Any PEM-encoded private key"
+regex = '''-----BEGIN (RSA |OPENSSH |EC |DSA |PGP |ENCRYPTED |)PRIVATE KEY-----'''
+keywords = ["BEGIN", "PRIVATE KEY"]
+tags = ["key", "PEM"]
+
+# --- Allowlist: things that look like secrets but aren't ---
+
+[allowlist]
+description = "Files and patterns excluded from scanning"
+
+paths = [
+  '''(^|/)\.git/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)dist/''',
+  '''(^|/)\.next/''',
+  '''(^|/)build/''',
+  '''(^|/)coverage/''',
+  '''(^|/)\.env\.example$''',
+  '''(^|/)env\.example$''',
+  '''\.lock$''',
+  '''package-lock\.json$''',
+  '''pnpm-lock\.yaml$''',
+  '''yarn\.lock$''',
+  # Scoped exclusions for template files known to contain example tokens.
+  # We do NOT exclude the entire .agent-template/ folder — fixtures, ADRs,
+  # and READMEs there must still be scanned. Add specific paths here only.
+  '''\.agent-template/tests/.*\.bats$''',
+]
+
+regexes = [
+  # Common placeholder values
+  '''(?i)(your[_-]?(key|token|secret)|placeholder|example|dummy|fake|xxxx+|aaaa+|test123)''',
+  # gitleaks-style example tokens
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''sk-ant-api03-EXAMPLE''',
+  # JWT example tokens (common in Supabase docs)
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIg''',
+]
+
+stopwords = [
+  "example",
+  "placeholder",
+  "fake",
+  "dummy",
+  "test",
+  "demo",
+]

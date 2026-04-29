@@ -1,0 +1,36 @@
+# Agent OS — file normalization for cross-platform development.
+#
+# The single biggest cause of "works on Mac, broken on PC" is line endings.
+# Git on Windows defaults to checking out CRLF; bash scripts and hooks then
+# fail with "$'\r': command not found". This file forces LF (Unix line
+# endings) for all script-shaped files, regardless of platform.
+#
+# Drop into the repo root. Reference: https://git-scm.com/docs/gitattributes
+
+# Default: let git auto-detect text vs binary, normalize text to LF in repo.
+* text=auto eol=lf
+
+# Hooks and shell scripts MUST be LF — CRLF will break them silently.
+.githooks/*    text eol=lf
+*.sh           text eol=lf
+*.bash         text eol=lf
+*.bats         text eol=lf
+
+# Markdown / config — LF for cross-platform consistency.
+*.md           text eol=lf
+*.yml          text eol=lf
+*.yaml         text eol=lf
+*.toml         text eol=lf
+*.json         text eol=lf
+
+# Binary files — never normalize.
+*.png          binary
+*.jpg          binary
+*.jpeg         binary
+*.gif          binary
+*.ico          binary
+*.pdf          binary
+*.zip          binary
+*.tar.gz       binary
+*.mp4          binary
+*.mov          binary

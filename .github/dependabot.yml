@@ -1,0 +1,45 @@
+# Dependabot — automated dependency security updates.
+# Adjust the package-ecosystem entries to match your stack.
+# Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # GitHub Actions versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    # Force SHA pinning so Dependabot updates the SHA + comment together.
+    # Major bumps still require human review.
+    labels:
+      - "dependencies"
+      - "ci"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # npm / pnpm — uncomment if applicable
+  # - package-ecosystem: "npm"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #   open-pull-requests-limit: 10
+  #   groups:
+  #     production:
+  #       dependency-type: "production"
+  #     development:
+  #       dependency-type: "development"
+
+  # pip — uncomment if applicable
+  # - package-ecosystem: "pip"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+
+  # cargo — uncomment if applicable
+  # - package-ecosystem: "cargo"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"

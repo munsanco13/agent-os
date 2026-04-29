@@ -1,0 +1,209 @@
+# Server-side security checks. Runs on every push and PR.
+# This is the *real* enforcement layer — local hooks are advisory.
+#
+# Required for branch protection on `main` (configure in GitHub repo settings):
+#   - Require status check: "secret-scan"
+#   - Require status check: "large-files"
+#   - Require status check: "no-direct-pushes"
+#   - Require pull request before merging
+#   - Require approvals: 1
+#   - Require linear history (recommended)
+
+name: security
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  schedule:
+    # Weekly full-history scan to catch anything that slipped through
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -----------------------------------------------------------
+  # 1. SECRET SCAN — gitleaks against full history
+  # -----------------------------------------------------------
+  secret-scan:
+    name: secret-scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        # SHA-pinned to v2.3.7 — bump via Dependabot only.
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pin to project's gitleaks config; fail loud if missing
+          GITLEAKS_CONFIG: .gitleaks.toml
+          # Always exit non-zero on findings (don't redact away failures)
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
+          GITLEAKS_ENABLE_SUMMARY: true
+
+  # -----------------------------------------------------------
+  # 2. LARGE FILE CHECK — refuse anything over 5 MB
+  # -----------------------------------------------------------
+  large-files:
+    name: large-files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Find files > 5MB in this PR / push
+        run: |
+          set -euo pipefail
+          THRESHOLD=$((5 * 1024 * 1024))
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+
+          if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+            echo "First push or new branch — scanning full tree."
+            FILES=$(git ls-tree -r --name-only HEAD)
+          else
+            FILES=$(git diff --name-only "$BASE" "$HEAD" || true)
+          fi
+
+          violators=()
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            [[ ! -f "$f" ]] && continue
+            size=$(wc -c < "$f")
+            if [[ "$size" -gt "$THRESHOLD" ]]; then
+              violators+=("$f ($((size / 1024 / 1024))MB)")
+            fi
+          done <<< "$FILES"
+
+          if [[ ${#violators[@]} -gt 0 ]]; then
+            echo "❌ Files exceeding 5MB:"
+            printf '   %s\n' "${violators[@]}"
+            echo
+            echo "Move large binaries to object storage (S3/R2) or git-lfs."
+            exit 1
+          fi
+          echo "✅ No oversized files."
+
+  # -----------------------------------------------------------
+  # 3. PROHIBIT DIRECT PUSHES TO MAIN
+  # -----------------------------------------------------------
+  # Verifies the push to main came from a merged PR — works for merge,
+  # squash, and rebase merge styles (parent count alone isn't reliable
+  # because squash merges have one parent).
+  no-direct-pushes:
+    name: no-direct-pushes
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    steps:
+      - name: Verify HEAD commit is associated with a merged PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # GitHub API: list PRs associated with this commit
+          response=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/commits/$SHA/pulls" || echo "[]")
+
+          # Count merged PRs that targeted main/master
+          merged_count=$(echo "$response" | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+print(sum(1 for p in data if p.get("merged_at") and p.get("base", {}).get("ref") in ("main", "master")))
+          ')
+
+          if [[ "$merged_count" -ge 1 ]]; then
+            echo "✅ Push corresponds to a merged PR."
+            exit 0
+          fi
+
+          echo "❌ Direct push to ${{ github.ref_name }} (no merged PR found for $SHA)."
+          echo "   All changes to main must come through a pull request."
+          echo "   Configure branch protection: Settings → Branches → Add rule → main → Require PR."
+          exit 1
+
+  # -----------------------------------------------------------
+  # 4. VERIFY HOOKS PATH IS WIRED
+  # -----------------------------------------------------------
+  hooks-integrity:
+    name: hooks-integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Confirm pre-commit hook exists and is executable
+        run: |
+          set -euo pipefail
+          if [[ ! -f .githooks/pre-commit ]]; then
+            echo "❌ .githooks/pre-commit is missing."
+            exit 1
+          fi
+          if [[ ! -x .githooks/pre-commit ]]; then
+            echo "❌ .githooks/pre-commit is not executable."
+            exit 1
+          fi
+          echo "✅ Hook present and executable. (Note: developers must run 'git config core.hooksPath .githooks' locally.)"
+
+  # -----------------------------------------------------------
+  # 5. PLACEHOLDER LINT — block << >> tokens leaking out of templates
+  # -----------------------------------------------------------
+  # Critical: CODEOWNERS with an unfilled placeholder fails OPEN — GitHub
+  # treats <<GITHUB_USERNAME>> as a literal nonexistent user, so "require
+  # Code Owner review" silently allows everything. We MUST scan it.
+  placeholder-lint:
+    name: placeholder-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Detect unfilled << >> placeholders
+        run: |
+          set -euo pipefail
+          targets=(
+            AGENTS.md
+            SECURITY.md
+            HANDOFF.md
+            .github/CODEOWNERS
+            .github/SECURITY.md
+          )
+          violators=()
+          for f in "${targets[@]}"; do
+            [[ -f "$f" ]] || continue
+            if grep -qE '<<[A-Z_]+>>' "$f"; then
+              tokens=$(grep -oE '<<[A-Z_]+>>' "$f" | sort -u | tr '\n' ' ')
+              violators+=("$f → $tokens")
+            fi
+          done
+          if [[ ${#violators[@]} -gt 0 ]]; then
+            echo "❌ These files still contain <<PLACEHOLDER>> tokens:"
+            for v in "${violators[@]}"; do echo "   $v"; done
+            echo
+            echo "Unfilled CODEOWNERS placeholders are a security failure — branch"
+            echo "protection's 'require Code Owner review' silently allows everything"
+            echo "when the named owner doesn't exist."
+            exit 1
+          fi
+          echo "✅ No unfilled placeholders."

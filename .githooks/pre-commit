@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# Agent OS pre-commit hook v2 — defense in depth.
+#
+# Local enforcement is advisory; the real guarantees come from the GitHub
+# Actions workflow at .github/workflows/security.yml. This hook fails fast
+# locally so you don't waste a CI cycle.
+#
+# Layers:
+#   1. Filename allowlist / forbidden patterns
+#   2. gitleaks (if installed) — industry-standard secret scanner
+#   3. Fallback regex scan (only if gitleaks absent — strongly recommended)
+#   4. Large file check (>5 MB)
+#   5. Direct-commit-to-main refusal
+#
+# DO NOT bypass with --no-verify. The CI re-runs all of this server-side
+# on every PR and push, so bypassing locally just delays the failure.
+
+set -euo pipefail
+
+# --- Helpers -----------------------------------------------------------
+
+red()    { printf '\033[0;31m%s\033[0m\n' "$*"; }
+yellow() { printf '\033[0;33m%s\033[0m\n' "$*"; }
+green()  { printf '\033[0;32m%s\033[0m\n' "$*"; }
+
+# Auto-detect main branch from git config; fall back to "main".
+detect_main_branch() {
+  local default
+  default=$(git config --get init.defaultBranch 2>/dev/null || echo "")
+  if git show-ref --quiet refs/heads/main; then echo "main"; return; fi
+  if git show-ref --quiet refs/heads/master; then echo "master"; return; fi
+  if git show-ref --quiet refs/heads/trunk; then echo "trunk"; return; fi
+  echo "${default:-main}"
+}
+
+MAIN_BRANCH=$(detect_main_branch)
+
+# Allow project-specific override via .agent-os.conf
+if [[ -f .agent-os.conf ]]; then
+  configured=$(grep -E '^MAIN_BRANCH=' .agent-os.conf 2>/dev/null | cut -d= -f2- | tr -d '"' || true)
+  [[ -n "${configured:-}" ]] && MAIN_BRANCH="$configured"
+fi
+
+# --- 1. Filename forbidden / allowlist --------------------------------
+
+FORBIDDEN_PATTERNS=(
+  '(^|/)\.env($|\.[^/]+$)'
+  '(^|/)credentials\.json$'
+  '(^|/)service[_-]?account.*\.json$'
+  '\.pem$'
+  '\.key$'
+  '\.p12$'
+  '\.pfx$'
+  '(^|/)id_rsa($|\.)'
+  '(^|/)id_ed25519($|\.)'
+  '(^|/)\.netrc$'
+  '(^|/)\.pgpass$'
+  '(^|/)\.aws/credentials$'
+  '(^|/)secrets?\.(ya?ml|json|toml)$'
+)
+
+ALLOWLIST=(
+  '\.env\.example$'
+  '\.env\..*\.example$'
+  'env\.example$'
+)
+
+# Portable across bash 3.2 (stock macOS) and bash 4+
+STAGED=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && STAGED+=("$line")
+done < <(git diff --cached --name-only --diff-filter=ACM)
+[[ ${#STAGED[@]} -eq 0 ]] && exit 0
+
+BLOCKED=()
+for file in "${STAGED[@]}"; do
+  allowed=0
+  for allow in "${ALLOWLIST[@]}"; do
+    if [[ "$file" =~ $allow ]]; then allowed=1; break; fi
+  done
+  [[ "$allowed" == 1 ]] && continue
+  for pat in "${FORBIDDEN_PATTERNS[@]}"; do
+    if [[ "$file" =~ $pat ]]; then
+      BLOCKED+=("$file (matched: $pat)")
+      break
+    fi
+  done
+done
+
+if [[ ${#BLOCKED[@]} -gt 0 ]]; then
+  red "❌ pre-commit: filename matches a secret-shaped pattern."
+  for entry in "${BLOCKED[@]}"; do echo "   $entry"; done
+  echo
+  echo "Secrets must live in your deploy provider (Vercel / Fly / AWS) and locally in .env.local (gitignored)."
+  echo "If this is a false positive, add an allowlist entry to .githooks/pre-commit."
+  exit 1
+fi
+
+# --- 2. gitleaks (preferred) ------------------------------------------
+
+if command -v gitleaks >/dev/null 2>&1; then
+  config_arg=""
+  [[ -f .gitleaks.toml ]] && config_arg="--config .gitleaks.toml"
+  if ! gitleaks protect --staged $config_arg --redact --no-banner; then
+    red "❌ pre-commit: gitleaks found a likely secret."
+    echo "Above output shows file:line and a redacted preview."
+    echo "Rotate the secret at the vendor, remove from staged changes, retry."
+    exit 1
+  fi
+  green "✓ gitleaks scan clean"
+else
+  # --- 3. Fallback regex scan (gitleaks not installed) -----------
+  yellow "⚠ gitleaks not installed — using fallback regex scan (less coverage)."
+  yellow "  Install: brew install gitleaks  |  see https://github.com/gitleaks/gitleaks"
+
+  CONTENT_PATTERNS=(
+    'AKIA[0-9A-Z]{16}'
+    '(aws_secret_access_key|AWS_SECRET)\s*=\s*[A-Za-z0-9/+=]{40}'
+    'ghp_[A-Za-z0-9]{36,}'
+    'github_pat_[A-Za-z0-9_]{82,}'
+    'sk_live_[A-Za-z0-9]{24,}'
+    'rk_live_[A-Za-z0-9]{24,}'
+    'sk-ant-(api03|admin01)-[A-Za-z0-9_-]{60,}'
+    'sk-(proj|svcacct|admin)-[A-Za-z0-9_-]{40,}'
+    'xoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+'
+    'sk_(live|test)_[A-Za-z0-9]{40,}'                       # Clerk
+    '-----BEGIN (RSA |OPENSSH |EC |DSA |PGP |ENCRYPTED |)PRIVATE KEY-----'
+    'postgres(ql)?://[^:[:space:]]+:[^@[:space:]]+@'
+    'eyJ[A-Za-z0-9_=-]{10,}\.eyJ[A-Za-z0-9_=-]{40,}\.[A-Za-z0-9_=-]{20,}'  # any JWT
+  )
+
+  DIFF=$(git diff --cached --unified=0 -- "${STAGED[@]}" 2>/dev/null || true)
+  if [[ -n "$DIFF" ]]; then
+    for pat in "${CONTENT_PATTERNS[@]}"; do
+      if echo "$DIFF" | grep -E -q "$pat"; then
+        red "❌ pre-commit: high-confidence secret pattern in staged diff."
+        echo "   Pattern: $pat"
+        exit 1
+      fi
+    done
+  fi
+fi
+
+# --- 4. Large file guard ----------------------------------------------
+
+MAX_SIZE_MB=5
+for file in "${STAGED[@]}"; do
+  [[ -f "$file" ]] || continue
+  size_bytes=$(wc -c < "$file" 2>/dev/null || echo 0)
+  size_mb=$(( size_bytes / 1024 / 1024 ))
+  if [[ "$size_mb" -gt "$MAX_SIZE_MB" ]]; then
+    red "❌ pre-commit: file exceeds ${MAX_SIZE_MB}MB:"
+    echo "   $file (${size_mb}MB)"
+    echo "Move large binaries to S3/R2 or git-lfs."
+    exit 1
+  fi
+done
+
+# --- 5. Refuse direct commits to main ---------------------------------
+
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+if [[ "$CURRENT_BRANCH" == "$MAIN_BRANCH" ]]; then
+  if [[ "${AGENT_OS_ALLOW_MAIN_COMMIT:-0}" != "1" ]]; then
+    red "❌ pre-commit: refusing direct commit to '$MAIN_BRANCH'."
+    echo "   Create a feature branch and PR instead:"
+    echo "     git checkout -b feat/your-topic"
+    echo
+    echo "   This rule is also enforced server-side by .github/workflows/security.yml."
+    echo "   Bypass for a merge commit only:  AGENT_OS_ALLOW_MAIN_COMMIT=1 git commit ..."
+    exit 1
+  fi
+fi
+
+green "✓ pre-commit checks passed"
+exit 0

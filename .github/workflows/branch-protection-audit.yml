@@ -1,0 +1,72 @@
+# Audits whether `main` has branch protection configured.
+# Runs weekly. If unprotected, opens an issue.
+#
+# Requires a GitHub PAT with `repo` scope stored as `BRANCH_PROTECT_TOKEN`.
+# (The default GITHUB_TOKEN cannot read branch protection settings.)
+# If the secret is absent, the job no-ops with a warning instead of failing.
+
+name: branch-protection-audit
+
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch protection on main
+        env:
+          GH_TOKEN: ${{ secrets.BRANCH_PROTECT_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::warning::BRANCH_PROTECT_TOKEN secret not set — skipping audit."
+            echo "Add a fine-grained PAT with 'Administration: read' scope and store as BRANCH_PROTECT_TOKEN."
+            exit 0
+          fi
+
+          status=$(curl -s -o /tmp/protection.json -w "%{http_code}" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/branches/main/protection" || echo "000")
+
+          if [[ "$status" == "404" ]]; then
+            echo "❌ Branch 'main' has NO protection rules."
+            # gh CLI needs GITHUB_TOKEN, not the read-only PAT we used for branch protection check.
+            GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh issue create \
+              --title "🚨 main branch has no protection rules" \
+              --body "The weekly branch-protection audit found that \`main\` has no protection rules configured.
+
+              **Fix:** Settings → Branches → Add branch protection rule for \`main\` with:
+              - Require a pull request before merging (1 approval)
+              - Require status checks: \`secret-scan\`, \`large-files\`, \`no-direct-pushes\`, \`hooks-integrity\`, \`placeholder-lint\`
+              - Require conversation resolution
+              - Require linear history
+              - Do NOT allow force pushes
+              - Do NOT allow deletions
+
+              See \`SECURITY.md\` for context." \
+              --label "security" || true
+            exit 1
+          elif [[ "$status" == "200" ]]; then
+            echo "✅ Branch protection exists. Inspecting…"
+            cat /tmp/protection.json | jq '{
+              required_status_checks: .required_status_checks.contexts,
+              required_reviews: .required_pull_request_reviews.required_approving_review_count,
+              enforce_admins: .enforce_admins.enabled,
+              allow_force_pushes: .allow_force_pushes.enabled,
+              allow_deletions: .allow_deletions.enabled
+            }'
+          else
+            echo "::warning::Unexpected status $status from branch protection API."
+            cat /tmp/protection.json
+            exit 1
+          fi
+        shell: bash

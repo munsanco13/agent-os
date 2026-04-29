@@ -1,0 +1,58 @@
+# PR-quality checks — runs only on pull requests.
+# These don't gate security; they enforce process hygiene.
+
+name: pr-checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  pr-title:
+    name: pr-title (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          # Conventional commits + a few project-specific types
+          pattern='^(feat|fix|chore|docs|refactor|perf|test|build|ci|revert|security)(\([a-z0-9_-]+\))?!?: .{1,72}$'
+          if ! echo "$TITLE" | grep -qE "$pattern"; then
+            echo "❌ PR title does not match Conventional Commits format."
+            echo "   Got:      $TITLE"
+            echo "   Expected: feat(scope): short description"
+            echo
+            echo "   Allowed types: feat, fix, chore, docs, refactor, perf, test, build, ci, revert, security"
+            exit 1
+          fi
+          echo "✅ PR title valid: $TITLE"
+
+  pr-body:
+    name: pr-body (sections)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Summary + Test plan sections
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BODY:-}" ]]; then
+            echo "❌ PR body is empty."
+            exit 1
+          fi
+          missing=()
+          echo "$BODY" | grep -qiE '^## *Summary'   || missing+=("## Summary")
+          echo "$BODY" | grep -qiE '^## *Test plan' || missing+=("## Test plan")
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "❌ PR body is missing required sections:"
+            printf '   %s\n' "${missing[@]}"
+            echo
+            echo "Use the template at .github/pull_request_template.md"
+            exit 1
+          fi
+          echo "✅ PR body has required sections."

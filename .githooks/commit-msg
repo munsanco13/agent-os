@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Agent OS commit-msg hook — enforces Conventional Commits subject line.
+#
+# Subject format:  type(optional-scope)!?: short description
+# Allowed types:   feat fix chore docs refactor perf test build ci revert security
+#
+# Bypass for emergencies only with AGENT_OS_SKIP_COMMIT_MSG=1.
+
+set -euo pipefail
+
+MSG_FILE="$1"
+SUBJECT=$(head -n1 "$MSG_FILE" | tr -d '\r')
+
+# Allow merge commits, reverts, fixups, and squashes
+case "$SUBJECT" in
+  Merge\ *|Revert\ *|fixup!*|squash!*|amend!*) exit 0 ;;
+esac
+
+if [[ "${AGENT_OS_SKIP_COMMIT_MSG:-0}" == "1" ]]; then
+  exit 0
+fi
+
+PATTERN='^(feat|fix|chore|docs|refactor|perf|test|build|ci|revert|security)(\([a-z0-9_./-]+\))?!?: .{1,72}$'
+
+if ! [[ "$SUBJECT" =~ $PATTERN ]]; then
+  printf '\033[0;31m❌ commit-msg: subject does not match Conventional Commits.\033[0m\n'
+  echo
+  echo "  Got:      $SUBJECT"
+  echo "  Expected: type(scope): short description"
+  echo "  Example:  feat(auth): add Google OAuth fallback"
+  echo
+  echo "  Allowed types: feat, fix, chore, docs, refactor, perf, test, build, ci, revert, security"
+  echo "  Subject must be ≤ 72 chars."
+  exit 1
+fi
+
+# Disallow trailing period on subject
+if [[ "$SUBJECT" =~ \.$  ]]; then
+  printf '\033[0;31m❌ commit-msg: subject must not end with a period.\033[0m\n'
+  exit 1
+fi

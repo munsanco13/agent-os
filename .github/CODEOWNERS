@@ -1,0 +1,15 @@
+# CODEOWNERS — required reviewers for sensitive paths.
+# Replace @<<GITHUB_USERNAME>> with your GitHub handle (or @org/team).
+#
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+
+# Default owner of everything
+*                                    @<<GITHUB_USERNAME>>
+
+# Security-critical paths require explicit review
+/SECURITY.md                         @<<GITHUB_USERNAME>>
+/AGENTS.md                           @<<GITHUB_USERNAME>>
+/.gitleaks.toml                      @<<GITHUB_USERNAME>>
+/.githooks/                          @<<GITHUB_USERNAME>>
+/.github/workflows/                  @<<GITHUB_USERNAME>>
+/.github/CODEOWNERS                  @<<GITHUB_USERNAME>>
