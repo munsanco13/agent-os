@@ -27,7 +27,7 @@ If you have an AI assistant (Claude, Codex, Cursor) with bash + GitHub access:
    ```
 4. Tell the AI:
    ```
-   Run: bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/autonomous-install.sh)
+   Run: bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.1/scripts/autonomous-install.sh)
 
    It will auto-detect my stack, generate bootstrap.yaml, install Agent OS,
    open + auto-merge the install PR, and configure GitHub branch protection
@@ -176,7 +176,7 @@ git init -b main
 Copy and paste this **exactly**, then press Enter:
 
 ```
-AGENT_OS_REF=v2.3.0 bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/install.sh)
+AGENT_OS_REF=v2.3.1 bash <(curl -fsSL https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.1/scripts/install.sh)
 ```
 
 This downloads and runs the installer. It will:

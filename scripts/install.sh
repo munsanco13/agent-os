@@ -7,7 +7,7 @@
 #
 #   # Pinned remote install (recommended for other projects):
 #   AGENT_OS_REF=v2.0.0 bash <(curl -fsSL \
-#     https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/install.sh)
+#     https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.1/scripts/install.sh)
 #
 # Behavior:
 #   1. Verifies the target is a git repo.

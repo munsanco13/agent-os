@@ -1,5 +1,24 @@
 # Agent OS Changelog
 
+## v2.3.1 — 2026-04-29 (hotfix)
+
+### Fixed
+- **Critical**: `scripts/install.sh` and `scripts/update.sh` had broken curl-pipe download URLs. They referenced a `.agent-template/` prefix that doesn't exist in the public agent-os repo, so every curl-piped autonomous install was 404'ing. Discovered while dogfooding the install on a real project.
+- `scripts/autonomous-install.sh` template-directory resolution now correctly handles being run from inside a clone of the public agent-os repo.
+- All install URL references across docs bumped from `v2.3.0` → `v2.3.1`.
+
+### Documentation
+- `PLAYBOOK.md` Part 1 ("Why this exists") rewritten around the cap-hit pain to match the README framing. Was security-leading; now leads with the visceral "Claude Code reset in 3 days" moment + 4 wall scenarios.
+- `PLAYBOOK.md` TL;DR + roadmap updated to current state.
+
+### Upgrade
+
+```bash
+bash scripts/agent-os-update.sh v2.3.1
+```
+
+If you're already on v2.3.0, this is critical — it fixes the broken curl-pipe install URLs.
+
 ## v2.3.0 — 2026-04-29 (final)
 
 The "best in scope" release. After comparing against 5 peer tools in the multi-AI space (mozilla-ai/any-llm, bfly123/claude_codex_bridge, zuharz/ccode-to-codex, itswendell/palot, kamilio/agents-md-vscode-extension), adopted the genuinely-better ideas and made the scope explicit.
