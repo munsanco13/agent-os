@@ -3,11 +3,11 @@
 #
 # Usage:
 #   # From a clone of this repo:
-#   bash .agent-template/scripts/install.sh /path/to/target/repo
+#   bash scripts/install.sh /path/to/target/repo
 #
 #   # Pinned remote install (recommended for other projects):
 #   AGENT_OS_REF=v2.0.0 bash <(curl -fsSL \
-#     https://raw.githubusercontent.com/munsanco13/agent-os/v2.0.0/scripts/install.sh)
+#     https://raw.githubusercontent.com/munsanco13/agent-os/v2.3.0/scripts/install.sh)
 #
 # Behavior:
 #   1. Verifies the target is a git repo.
@@ -72,7 +72,7 @@ if [[ -z "$SOURCE" || ! -f "$SOURCE/AGENTS.md" ]]; then
   )
   for p in "${paths[@]}"; do
     mkdir -p "$TMP/$(dirname "$p")"
-    curl -fsSL "$REPO_RAW_BASE/$REPO_REF/.agent-template/$p" -o "$TMP/$p" || {
+    curl -fsSL "$REPO_RAW_BASE/$REPO_REF$p" -o "$TMP/$p" || {
       red "❌ Failed to download $p — aborting"
       exit 1
     }
@@ -116,7 +116,7 @@ if [[ -n "$competing" ]]; then
   yellow "  Agent OS uses .githooks/ + core.hooksPath. Two hook managers will conflict."
   yellow "  Options:"
   yellow "    A. Remove the existing manager, then re-run this installer"
-  yellow "    B. Manually merge .agent-template/.githooks/pre-commit into your existing config"
+  yellow "    B. Manually merge .githooks/pre-commit into your existing config"
   yellow "  Aborting to avoid breaking your setup."
   exit 1
 fi

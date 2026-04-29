@@ -5,7 +5,7 @@
 # Usage:
 #   bash scripts/agent-os-update.sh [target-version]
 #   bash scripts/agent-os-update.sh                  # uses latest tag
-#   bash scripts/agent-os-update.sh v2.1.0           # specific version
+#   bash scripts/agent-os-update.sh v2.3.0           # specific version
 
 set -euo pipefail
 
@@ -69,7 +69,7 @@ paths=(
 
 for p in "${paths[@]}"; do
   mkdir -p "$TMP/$(dirname "$p")"
-  if ! curl -fsSL "$REPO_RAW_BASE/$TARGET_REF/.agent-template/$p" -o "$TMP/$p"; then
+  if ! curl -fsSL "$REPO_RAW_BASE/$TARGET_REF$p" -o "$TMP/$p"; then
     yellow "   warn  could not fetch $p (may not exist in this version)"
     rm -f "$TMP/$p"
   fi
@@ -133,7 +133,7 @@ done
 
 # Update version stamp
 INSTALL_SHA=$(curl -fsSL "https://api.github.com/repos/munsanco13/agent-os/commits/$TARGET_REF" 2>/dev/null | grep -m1 '"sha"' | cut -d'"' -f4 || echo "unknown")
-NEW_VERSION=$(curl -fsSL "$REPO_RAW_BASE/$TARGET_REF/.agent-template/VERSION" 2>/dev/null | tr -d '\n' || echo "$TARGET_REF")
+NEW_VERSION=$(curl -fsSL "$REPO_RAW_BASE/$TARGET_REFVERSION" 2>/dev/null | tr -d '\n' || echo "$TARGET_REF")
 cat > .agent-os-version <<EOF
 version: $NEW_VERSION
 ref: $TARGET_REF
