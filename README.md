@@ -4,9 +4,9 @@
 
 # Agent OS
 
-### **Use Claude Code AND Codex AND Cursor on flat-rate subscriptions — without losing context when you switch.**
+### **Hit your Claude Code usage limit? Keep building in Codex without losing your place.**
 
-**The drop-in template that lets you mix AI coding subscriptions seamlessly, so you can pay subscription prices instead of pay-per-token API bills no matter which tools you choose.**
+**The drop-in template that lets you switch between AI coding tools mid-project — when one hits its cap, the next one picks up exactly where you left off in under 2 minutes.**
 
 [![Version](https://img.shields.io/github/v/tag/munsanco13/agent-os?label=version&color=2563eb)](https://github.com/munsanco13/agent-os/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -16,7 +16,7 @@
 
 [**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 &nbsp;·&nbsp;
-[**The cost math**](#the-real-problem-api-costs-are-eating-you-alive)
+[**The pain this solves**](#the-real-problem-you-hit-the-cap-mid-project)
 &nbsp;·&nbsp;
 [**See it vs alternatives**](#how-agent-os-compares)
 &nbsp;·&nbsp;
@@ -26,40 +26,49 @@
 
 ---
 
-## The real problem: API costs vs. subscriptions
+## The real problem: you hit the cap mid-project
 
-If you code seriously with AI in 2026, you have two ways to pay:
+You're 6 hours deep into a hard problem in **Claude Code**. The model is dialed in — it knows your codebase, it's nailed the bug pattern, you're 30 minutes from shipping the fix.
 
-### Option A — Pay per token (the API)
-You wire up your own API keys to Anthropic, OpenAI, etc. Every prompt is metered. With modern agentic tooling that spawns sub-agents and burns through context, **a single serious development day can cost hundreds of dollars in API charges.** Heavy users see four-figure monthly bills routinely.
+Then this happens:
 
-### Option B — Flat-rate subscription products
-The same companies sell flat-rate subscription products that include the desktop apps:
+> *"You've reached your weekly usage limit. Resets in 3 days."*
 
-- **Claude Pro / Claude Max** → Claude Code in the desktop app
-- **ChatGPT Plus / Pro** → Codex in the desktop app
-- **Cursor Pro / Business** → Cursor with multi-model access
-- (And free tiers / lower tiers exist for lighter users)
+Now you're stuck. **Three options, all bad:**
 
-**Whatever tier you're on, subscriptions are dramatically cheaper than API for the same actual usage.** The exact savings depend on your tier and your usage, but for serious developers it's typically **5–50× less expensive** to pay flat-rate than to meter via API.
+### ❌ Option 1 — Wait 3 days
+You lose your flow state. You forget what you were doing. The deadline slips. You feel like the tool failed you.
 
-So why doesn't everyone just use subscriptions?
+### ❌ Option 2 — Switch on the API
+Pay per token. With modern agentic tooling spawning sub-agents and burning context, a single serious dev day can cost **hundreds of dollars** in API charges. Heavy use = four-figure monthly bills routinely. The whole reason you used the subscription was to avoid this.
 
-### Because switching between subscription tools is painful
+### ❌ Option 3 — Switch to Codex (or another AI), but cold
+Codex's caps are more generous. So is Cursor's. But when you open a new tool, it knows nothing about your project, your conventions, what you were just trying to do. You spend **30 minutes re-onboarding it** before any work happens — pasting context, re-explaining the bug, re-establishing rules. By the time the new AI is up to speed, your flow is dead.
 
-- Claude Code on your home MacBook
-- Codex Desktop on your work laptop
-- Cursor when pair-programming
-- Each time you switch, the new AI starts cold:
-  - 🤯 Re-explain the project
-  - 🔁 Re-paste conventions and rules
-  - 🪦 Lose the thread of what you were doing
-  - 🎯 Re-onboard with current state, pending work, sharp edges
-- **A 30-minute handoff every time you switch tools = real productivity tax**
+### ✅ The fourth option (with Agent OS): switch in under 2 minutes
 
-So most devs either pick one tool and stick with it (eating the productivity loss when it's not the best tool for a task) or eat the API bill (so they can switch tools without losing state).
+Your project has `AGENTS.md` and a `docs/sessions/` log. You commit your in-progress work, push, and tell Codex (or Cursor, or whatever's still under cap):
 
-**Agent OS removes the switching tax. Use whichever subscription you've already paid for, switch between them seamlessly, and never get locked into a single vendor's tooling.**
+> *"Pick up work on https://github.com/me/myproject. Read AGENTS.md and the latest session log to bootstrap."*
+
+Codex reads the files, sees exactly where Claude left off, what's pending, what to watch out for, and what the project's conventions are. **It's productive in 2 minutes**, not 30. You finish shipping the fix.
+
+**Three days later your Claude Code cap resets.** You go back. Claude Code reads the same `AGENTS.md` + session log Codex was using. Continues from there.
+
+**This is what Agent OS is for: when one AI tool hits its cap or fails you, the next one keeps your project moving without losing momentum.**
+
+---
+
+### Real-world AI tool caps (as of 2026)
+
+| Tool | Cap behavior | Best fallback role |
+|---|---|---|
+| **Claude Code (Pro / Max)** | Weekly usage limits; even Max users hit them on heavy weeks | Where you start |
+| **Codex Desktop (ChatGPT Plus / Pro)** | More generous caps; rarer to hit | Primary fallback when Claude maxes out |
+| **Cursor (Pro / Business)** | Multi-model access; check current limits | Optional third tool / specific tasks |
+| **The API (any vendor)** | No cap, but **hundreds of dollars per dev day** | Emergency only |
+
+The exact limits vary by subscription tier and shift over time as vendors tune them. The pattern doesn't change: **every flat-rate tool has a cap. Without a way to switch tools without losing state, hitting the cap = losing the day.** Agent OS solves that.
 
 ---
 
@@ -131,16 +140,18 @@ For the manual install path (no AI handy), or for a deep walkthrough, see [`INST
 
 ## What you get
 
-### 1. Subscription costs become viable (the headline)
+### 1. Cap-hit recovery (the headline)
 
-Switching between AI subscriptions used to take 30 minutes per handoff. Agent OS reduces it to ~2 minutes:
+When Claude Code says "weekly limit reached, reset in 3 days," Agent OS lets you:
 
-- Stay on whatever subscription tier you've already paid for (Claude Pro, Claude Max, ChatGPT Plus, ChatGPT Pro, Cursor Pro, Cursor Business — your call)
-- Switch between Claude Code, Codex Desktop, and Cursor based on which is best for the task at hand
-- Never need to spin up the API just because "the other tool would have been better here"
-- For most serious developers, this means **flat-rate subscription pricing instead of metered API pricing — typically 5–50× cheaper depending on usage**
+1. Commit your work-in-progress (push)
+2. Open Codex (or Cursor, or whichever subscription tool still has runway)
+3. Tell it: *"Pick up the project. Read AGENTS.md and the latest session log."*
+4. Productive in **~2 minutes**, not 30
 
-**The math suddenly works in favor of subscriptions.**
+**Your project doesn't stall when one AI tool hits its cap.** You just keep building in the next tool. When the cap resets, you switch back. Same `AGENTS.md` + same session log = both AIs always in sync.
+
+This works for any combination — Claude Code → Codex, Codex → Cursor, Cursor → Claude Code, etc. The handoff protocol is tool-agnostic.
 
 ### 2. Multi-AI continuity (what you actually use day-to-day)
 
@@ -201,13 +212,19 @@ We benchmarked against the 5 most relevant peer tools. Each solves a different s
 ## FAQ
 
 <details>
-<summary><b>Is this really about cost savings, or is it a security tool?</b></summary>
+<summary><b>What problem does Agent OS actually solve?</b></summary>
 
-It's primarily about **multi-AI workflow continuity** so you can use whatever subscription tools you're already paying for (Claude Pro, Claude Max, ChatGPT Plus/Pro, Cursor Pro/Business — whichever tier fits your usage) interchangeably without the 30-minute re-onboarding tax that makes switching painful.
+**The "I hit the cap" problem.** You're deep in Claude Code on a hard problem and Claude says "weekly limit reached, reset in 3 days." Without Agent OS, you're stuck — wait three days, switch to the metered API and pay hundreds of dollars per day, or lose 30 minutes re-onboarding a different AI tool.
 
-For most serious developers, flat-rate subscriptions are 5–50× cheaper than metered API usage at the same level of work — but that math only works if switching between tools is fast. Agent OS makes it fast.
+With Agent OS, your project has `AGENTS.md` + a session log committed to the repo. The next AI tool (Codex, Cursor, whatever has runway left) reads those files and is productive in ~2 minutes. You keep building.
 
-The security/hygiene features (gitleaks, branch protection, hooks) are real and ship by default — but they're a side benefit. The headline is "use the subscriptions you're already paying for, interchangeably."
+The security/hygiene features (gitleaks, branch protection, hooks) ship by default and are real — but they're a side benefit. The headline is "when one AI tool maxes you out, the next one picks up where it left off."
+</details>
+
+<details>
+<summary><b>Why not just use the API instead of switching tools?</b></summary>
+
+Because for serious agentic dev work, the API is brutally expensive — modern tools spawn sub-agents and burn context, costing hundreds per day. Subscriptions exist exactly because flat-rate pricing makes serious AI-assisted development affordable. Agent OS makes the subscription model viable for power users who'd otherwise hit caps.
 </details>
 
 <details>
@@ -327,7 +344,7 @@ This repo eats its own dog food — every commit goes through the gates Agent OS
 
 [MIT License](LICENSE) · Built by [Mundo Sanchez](https://github.com/munsanco13)
 
-If Agent OS saves you money or time, **⭐ the repo**.
+If Agent OS keeps your project moving when an AI tool hits its cap, **⭐ the repo**.
 
 For the full design rationale, threat model, and deep dive: [`PLAYBOOK.md`](PLAYBOOK.md).
 
@@ -335,7 +352,7 @@ For the full design rationale, threat model, and deep dive: [`PLAYBOOK.md`](PLAY
 
 <div align="center">
 
-**Stop choosing between cheap-and-clunky or expensive-and-smooth. Use both.**
+**Hit the cap? Don't lose the day. Switch tools, keep building.**
 
 [**Install in 5 minutes →**](#-install-paste-this-into-your-ai)
 
