@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions / Discussions
+    url: https://github.com/munsanco13/agent-os/discussions
+    about: Design questions, "is this the right approach", and general chat go here.
+  - name: 🔒 Security vulnerability
+    url: https://github.com/munsanco13/agent-os/security/advisories/new
+    about: Report security issues privately. Do NOT open a public issue.

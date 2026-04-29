@@ -1,0 +1,84 @@
+name: 🐛 Bug report
+description: Something is broken in the installer, hooks, workflows, or scripts.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. The more concrete you can be, the faster this gets fixed.
+  - type: input
+    id: agent-os-version
+    attributes:
+      label: Agent OS version
+      description: From `.agent-os-version` in your project, or `cat VERSION` in this repo.
+      placeholder: "2.3.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Linux (specify distro below)
+        - Windows + WSL2
+        - Windows + Git Bash
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: stack
+    attributes:
+      label: Project stack (auto-detected by detect-stack.sh)
+      options:
+        - Node.js / pnpm
+        - Node.js / npm
+        - Node.js / yarn
+        - Node.js / bun
+        - Python / uv
+        - Python / Poetry
+        - Python / pip
+        - Rust
+        - Go
+        - Ruby
+        - PHP
+        - Elixir
+        - Java / Gradle
+        - Java / Maven
+        - Deno
+        - Other (specify below)
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What were you trying to do? What command did you run? What did you expect vs. what occurred?
+      placeholder: "I ran `bash scripts/autonomous-install.sh` and..."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output / logs
+      description: Paste full terminal output. Use code blocks. **Redact any secrets before pasting.**
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Numbered list, exact commands.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I ran `bash scripts/agent-os-validate.sh` and pasted the output above (or it's clearly not relevant)
+          required: true
+        - label: I redacted any secrets / tokens / PII from the logs
+          required: true
